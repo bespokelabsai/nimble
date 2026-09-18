@@ -1,0 +1,37 @@
+{
+  "dataset": "helpsteer2",
+  "subset": "",
+  "source_url": "https://huggingface.co/datasets/nvidia/HelpSteer2",
+  "license": "CC BY-4.0",
+  "note": "Validation split; helpfulness 0-4 scored as level index 0-4. Two responses per prompt share a family. correctness, coherence, complexity, and verbosity are kept in reference only.",
+  "release_year": 2024,
+  "source": "data/public/raw/helpsteer2/validation.jsonl",
+  "source_sha256": "1f5f121d1fddb540b24498ba38bfe132d87f7e2e9bac891464b32d30965884e7",
+  "dataset_sha256": "c2395b2f794217ee080ec3ef89fbd6d67fd8c8c6f9f1c8d47d127301929a2ca3",
+  "seed": 20260918,
+  "count": 249,
+  "families": 125,
+  "limit": 250,
+  "converted": 1034,
+  "skipped": 0,
+  "dropped_over_length": 4,
+  "max_input_tokens": 2048,
+  "length_filter": "applied with the serving prompt builder",
+  "selection": "Whole families drawn without replacement, round-robin across domain strata. Only family and domain metadata determine the order; reference targets and distributions are never inspected. Contrastive siblings are always kept together.",
+  "ids_from": null,
+  "types": {
+    "score": 249
+  },
+  "labels": {
+    "3": 72,
+    "4": 105,
+    "0": 17,
+    "1": 24,
+    "2": 31
+  },
+  "domains": {
+    "helpsteer2": 249
+  },
+  "human_reviewed": true,
+  "ids": ["helpsteer2-10","helpsteer2-1008","helpsteer2-1009","helpsteer2-1018","helpsteer2-1019","helpsteer2-102","helpsteer2-1024","helpsteer2-1025","helpsteer2-1028","helpsteer2-1029","helpsteer2-103","helpsteer2-1032","helpsteer2-1033","helpsteer2-11","helpsteer2-122","helpsteer2-123","helpsteer2-14","helpsteer2-148","helpsteer2-149","helpsteer2-15","helpsteer2-16","helpsteer2-162","helpsteer2-163","helpsteer2-17","helpsteer2-172","helpsteer2-173","helpsteer2-182","helpsteer2-183","helpsteer2-186","helpsteer2-187","helpsteer2-194","helpsteer2-195","helpsteer2-20","helpsteer2-202","helpsteer2-203","helpsteer2-21","helpsteer2-22","helpsteer2-23","helpsteer2-234","helpsteer2-235","helpsteer2-238","helpsteer2-239","helpsteer2-242","helpsteer2-243","helpsteer2-245","helpsteer2-256","helpsteer2-257","helpsteer2-264","helpsteer2-265","helpsteer2-268","helpsteer2-269","helpsteer2-270","helpsteer2-271","helpsteer2-274","helpsteer2-275","helpsteer2-284","helpsteer2-285","helpsteer2-308","helpsteer2-309","helpsteer2-326","helpsteer2-327","helpsteer2-330","helpsteer2-331","helpsteer2-336","helpsteer2-337","helpsteer2-338","helpsteer2-339","helpsteer2-340","helpsteer2-341","helpsteer2-358","helpsteer2-359","helpsteer2-36","helpsteer2-366","helpsteer2-367","helpsteer2-37","helpsteer2-390","helpsteer2-391","helpsteer2-40","helpsteer2-400","helpsteer2-401","helpsteer2-402","helpsteer2-403","helpsteer2-41","helpsteer2-410","helpsteer2-411","helpsteer2-416","helpsteer2-417","helpsteer2-418","helpsteer2-419","helpsteer2-422","helpsteer2-423","helpsteer2-432","helpsteer2-433","helpsteer2-436","helpsteer2-437","helpsteer2-44","helpsteer2-442","helpsteer2-443","helpsteer2-448","helpsteer2-449","helpsteer2-45","helpsteer2-454","helpsteer2-455","helpsteer2-456","helpsteer2-457","helpsteer2-470","helpsteer2-471","helpsteer2-48","helpsteer2-480","helpsteer2-481","helpsteer2-488","helpsteer2-489","helpsteer2-49","helpsteer2-496","helpsteer2-497","helpsteer2-498","helpsteer2-499","helpsteer2-50","helpsteer2-508","helpsteer2-509","helpsteer2-51","helpsteer2-520","helpsteer2-521","helpsteer2-544","helpsteer2-545","helpsteer2-546","helpsteer2-547","helpsteer2-552","helpsteer2-553","helpsteer2-564","helpsteer2-565","helpsteer2-570","helpsteer2-571","helpsteer2-58","helpsteer2-59","helpsteer2-596","helpsteer2-597","helpsteer2-600","helpsteer2-601","helpsteer2-602","helpsteer2-603","helpsteer2-618","helpsteer2-619","helpsteer2-622","helpsteer2-623","helpsteer2-624","helpsteer2-625","helpsteer2-648","helpsteer2-649","helpsteer2-650","helpsteer2-651","helpsteer2-652","helpsteer2-653","helpsteer2-654","helpsteer2-655","helpsteer2-658","helpsteer2-659","helpsteer2-666","helpsteer2-667","helpsteer2-670","helpsteer2-671","helpsteer2-678","helpsteer2-679","helpsteer2-682","helpsteer2-683","helpsteer2-684","helpsteer2-685","helpsteer2-686","helpsteer2-687","helpsteer2-688","helpsteer2-689","helpsteer2-700","helpsteer2-701","helpsteer2-712","helpsteer2-713","helpsteer2-714","helpsteer2-715","helpsteer2-722","helpsteer2-723","helpsteer2-724","helpsteer2-725","helpsteer2-746","helpsteer2-747","helpsteer2-756","helpsteer2-757","helpsteer2-760","helpsteer2-761","helpsteer2-766","helpsteer2-767","helpsteer2-776","helpsteer2-777","helpsteer2-778","helpsteer2-779","helpsteer2-784","helpsteer2-785","helpsteer2-798","helpsteer2-799","helpsteer2-8","helpsteer2-80","helpsteer2-81","helpsteer2-82","helpsteer2-820","helpsteer2-821","helpsteer2-828","helpsteer2-829","helpsteer2-83","helpsteer2-858","helpsteer2-859","helpsteer2-864","helpsteer2-865","helpsteer2-868","helpsteer2-869","helpsteer2-888","helpsteer2-889","helpsteer2-898","helpsteer2-899","helpsteer2-9","helpsteer2-908","helpsteer2-909","helpsteer2-910","helpsteer2-911","helpsteer2-912","helpsteer2-913","helpsteer2-920","helpsteer2-921","helpsteer2-926","helpsteer2-927","helpsteer2-932","helpsteer2-933","helpsteer2-934","helpsteer2-935","helpsteer2-940","helpsteer2-941","helpsteer2-942","helpsteer2-943","helpsteer2-944","helpsteer2-945","helpsteer2-970","helpsteer2-971","helpsteer2-98","helpsteer2-980","helpsteer2-981","helpsteer2-986","helpsteer2-987","helpsteer2-988","helpsteer2-989","helpsteer2-99","helpsteer2-990","helpsteer2-991"]
+}

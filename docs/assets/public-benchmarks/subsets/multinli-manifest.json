@@ -1,0 +1,39 @@
+{
+  "dataset": "multinli",
+  "subset": "",
+  "source_url": "https://cims.nyu.edu/~sbowman/multinli/multinli_1.0.zip",
+  "license": "Mixed per genre: OANC public domain; fiction and other sources CC BY-SA 3.0 or similar",
+  "note": "dev_matched pairs with five annotator votes each; reference.distribution is the vote share and the target is the released gold_label (majority). Pairs without a majority are skipped. promptID groups the hypotheses written for one premise.",
+  "release_year": 2018,
+  "source": "data/public/raw/multinli/multinli_1.0/multinli_1.0_dev_matched.jsonl",
+  "source_sha256": "9db14e02591c51b7c0401802382f01602ce97c21697a68a263f8c4b5958229a6",
+  "dataset_sha256": "e0349ce46c796b08ecddbfc3b525dd4528e02595cc64921911babc7e3620b2f1",
+  "seed": 20260918,
+  "count": 299,
+  "families": 103,
+  "limit": 300,
+  "converted": 9815,
+  "skipped": 185,
+  "dropped_over_length": 0,
+  "max_input_tokens": null,
+  "length_filter": "not applied; no tokenizer was supplied",
+  "selection": "Whole families drawn without replacement, round-robin across domain strata. Only family and domain metadata determine the order; reference targets and distributions are never inspected. Contrastive siblings are always kept together.",
+  "ids_from": null,
+  "types": {
+    "choice": 299
+  },
+  "labels": {
+    "contradiction": 100,
+    "entailment": 108,
+    "neutral": 91
+  },
+  "domains": {
+    "multinli-travel": 58,
+    "multinli-fiction": 60,
+    "multinli-slate": 60,
+    "multinli-government": 61,
+    "multinli-telephone": 60
+  },
+  "human_reviewed": true,
+  "ids": ["multinli-100036c","multinli-100036e","multinli-100036n","multinli-100640c","multinli-100640e","multinli-100640n","multinli-101846c","multinli-101846e","multinli-101846n","multinli-102563c","multinli-102563n","multinli-102801c","multinli-102801e","multinli-102801n","multinli-102857c","multinli-102857e","multinli-102857n","multinli-105191c","multinli-105191e","multinli-105587c","multinli-105587e","multinli-105587n","multinli-107693c","multinli-107693e","multinli-107693n","multinli-109608c","multinli-109608e","multinli-109608n","multinli-110237c","multinli-110237e","multinli-110237n","multinli-112701c","multinli-112701e","multinli-115224c","multinli-115224e","multinli-115224n","multinli-115478c","multinli-115478e","multinli-115478n","multinli-116405c","multinli-116405e","multinli-116405n","multinli-117089c","multinli-117089e","multinli-117089n","multinli-118415c","multinli-118415e","multinli-118415n","multinli-119188c","multinli-119188e","multinli-119188n","multinli-120176c","multinli-120176e","multinli-120441c","multinli-120441e","multinli-120441n","multinli-120996c","multinli-120996e","multinli-120996n","multinli-123675c","multinli-123675e","multinli-123675n","multinli-124388c","multinli-124388e","multinli-124388n","multinli-12438c","multinli-12438e","multinli-12438n","multinli-124590c","multinli-124590e","multinli-124590n","multinli-125021c","multinli-125021e","multinli-126025c","multinli-126025e","multinli-126025n","multinli-129980c","multinli-129980e","multinli-129980n","multinli-130680c","multinli-130680e","multinli-130680n","multinli-131063c","multinli-131063e","multinli-131063n","multinli-132019c","multinli-132019e","multinli-132019n","multinli-133243c","multinli-133243e","multinli-133243n","multinli-133966c","multinli-133966e","multinli-133966n","multinli-134281c","multinli-134281e","multinli-134281n","multinli-135021c","multinli-135021e","multinli-135021n","multinli-136864c","multinli-136864e","multinli-136864n","multinli-143501c","multinli-143501e","multinli-143501n","multinli-145377c","multinli-145377e","multinli-145377n","multinli-14649c","multinli-14649e","multinli-14649n","multinli-14937c","multinli-14937e","multinli-14937n","multinli-15659c","multinli-15659e","multinli-15659n","multinli-15791c","multinli-15791e","multinli-15791n","multinli-1682c","multinli-1682e","multinli-1682n","multinli-1735c","multinli-1735e","multinli-1735n","multinli-18636c","multinli-18636e","multinli-18636n","multinli-18920c","multinli-18920e","multinli-18920n","multinli-19167c","multinli-19167e","multinli-19167n","multinli-21287c","multinli-21287e","multinli-21287n","multinli-21297c","multinli-21297e","multinli-21297n","multinli-21912c","multinli-21912e","multinli-21912n","multinli-23319c","multinli-23319e","multinli-23319n","multinli-23365c","multinli-23365e","multinli-23365n","multinli-25109c","multinli-25109e","multinli-25109n","multinli-25158c","multinli-25158e","multinli-25158n","multinli-27287c","multinli-27287e","multinli-27287n","multinli-27400e","multinli-27400n","multinli-32754c","multinli-32754e","multinli-32754n","multinli-34043c","multinli-34043e","multinli-34043n","multinli-34094c","multinli-34094e","multinli-34094n","multinli-36814c","multinli-36814e","multinli-36814n","multinli-40103c","multinli-40103e","multinli-40103n","multinli-41052c","multinli-41052e","multinli-41052n","multinli-41432c","multinli-41432e","multinli-41432n","multinli-41958c","multinli-41958e","multinli-41958n","multinli-43365c","multinli-43365e","multinli-43365n","multinli-44747c","multinli-44747e","multinli-44747n","multinli-4795c","multinli-4795e","multinli-4795n","multinli-48413c","multinli-48413e","multinli-48413n","multinli-50071c","multinli-50071e","multinli-50071n","multinli-54770c","multinli-54770e","multinli-54770n","multinli-5565c","multinli-5565e","multinli-5565n","multinli-56495c","multinli-56495e","multinli-56495n","multinli-59383c","multinli-59383e","multinli-59383n","multinli-59453c","multinli-59453e","multinli-59453n","multinli-5964c","multinli-5964e","multinli-5964n","multinli-6030c","multinli-6030e","multinli-6030n","multinli-62869c","multinli-62869e","multinli-62869n","multinli-63602c","multinli-63602e","multinli-63602n","multinli-67836c","multinli-67836n","multinli-6983c","multinli-6983e","multinli-6983n","multinli-71860c","multinli-71860e","multinli-71860n","multinli-72389c","multinli-72389e","multinli-72389n","multinli-75259c","multinli-75259e","multinli-75259n","multinli-77871c","multinli-77871e","multinli-77871n","multinli-7856c","multinli-7856e","multinli-7856n","multinli-82471c","multinli-82471e","multinli-82471n","multinli-82530c","multinli-82530e","multinli-82530n","multinli-85309c","multinli-85309e","multinli-85309n","multinli-85403c","multinli-85403e","multinli-85403n","multinli-86793c","multinli-86793e","multinli-86793n","multinli-87584c","multinli-87584e","multinli-87584n","multinli-88227c","multinli-88227e","multinli-88227n","multinli-90924c","multinli-90924e","multinli-90924n","multinli-91601c","multinli-91601n","multinli-9301c","multinli-9301e","multinli-93955c","multinli-93955e","multinli-93955n","multinli-93958c","multinli-93958e","multinli-93958n","multinli-94811c","multinli-94811e","multinli-94811n","multinli-9646c","multinli-9646e","multinli-9646n","multinli-96906c","multinli-96906e","multinli-96906n","multinli-96956c","multinli-96956e","multinli-96956n","multinli-98065c","multinli-98065e","multinli-98315c","multinli-98315e","multinli-98315n"]
+}

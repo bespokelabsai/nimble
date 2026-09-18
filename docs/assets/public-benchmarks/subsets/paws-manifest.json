@@ -1,0 +1,34 @@
+{
+  "dataset": "paws",
+  "subset": "",
+  "source_url": "https://huggingface.co/datasets/google-research-datasets/paws",
+  "license": "Google PAWS license: may be freely used for any purpose",
+  "note": "Adversarial paraphrase pairs with high word overlap; each labeled_final test pair is one family.",
+  "release_year": 2019,
+  "source": "data/public/raw/paws/test.jsonl",
+  "source_sha256": "7d2f9c7973b04d83cde2d87ef20fb9001157e79fb6cfa27597223db9d5b86f3c",
+  "dataset_sha256": "ffc7388bbf027272b1c2175cd8d4d3591b63006696b2f9889bf70fccd457d167",
+  "seed": 20260918,
+  "count": 250,
+  "families": 250,
+  "limit": 250,
+  "converted": 8000,
+  "skipped": 0,
+  "dropped_over_length": 0,
+  "max_input_tokens": null,
+  "length_filter": "not applied; no tokenizer was supplied",
+  "selection": "Whole families drawn without replacement, round-robin across domain strata. Only family and domain metadata determine the order; reference targets and distributions are never inspected. Contrastive siblings are always kept together.",
+  "ids_from": null,
+  "types": {
+    "noul": 250
+  },
+  "labels": {
+    "False": 129,
+    "True": 121
+  },
+  "domains": {
+    "paws": 250
+  },
+  "human_reviewed": true,
+  "ids": ["paws-1","paws-1032","paws-1079","paws-1112","paws-1175","paws-1187","paws-1231","paws-1309","paws-1320","paws-1338","paws-1360","paws-1378","paws-1388","paws-1407","paws-1421","paws-1449","paws-1460","paws-1503","paws-1522","paws-1530","paws-1539","paws-16","paws-1625","paws-1694","paws-1708","paws-1714","paws-1716","paws-174","paws-1746","paws-175","paws-1777","paws-180","paws-1889","paws-190","paws-1951","paws-2019","paws-2041","paws-2067","paws-2086","paws-2087","paws-2094","paws-2148","paws-2171","paws-2218","paws-2224","paws-2237","paws-2247","paws-2418","paws-2464","paws-2478","paws-2497","paws-2520","paws-2540","paws-2547","paws-2576","paws-2585","paws-2634","paws-2717","paws-2730","paws-2750","paws-2753","paws-2791","paws-2805","paws-2849","paws-2850","paws-2864","paws-2882","paws-2897","paws-2903","paws-2918","paws-2938","paws-2988","paws-2998","paws-2999","paws-3005","paws-3030","paws-3059","paws-3119","paws-3151","paws-3167","paws-3173","paws-3220","paws-3222","paws-3226","paws-3234","paws-3260","paws-3312","paws-3324","paws-3339","paws-3409","paws-3446","paws-3447","paws-3448","paws-3468","paws-3514","paws-356","paws-3586","paws-3603","paws-3671","paws-3711","paws-373","paws-3745","paws-3778","paws-3792","paws-3800","paws-3814","paws-3861","paws-3892","paws-3932","paws-394","paws-3959","paws-4023","paws-4045","paws-4093","paws-4139","paws-414","paws-4155","paws-4180","paws-4207","paws-4240","paws-4266","paws-4305","paws-4329","paws-434","paws-4344","paws-4358","paws-4376","paws-4419","paws-4422","paws-4433","paws-4525","paws-4642","paws-466","paws-4763","paws-4802","paws-4811","paws-4825","paws-4850","paws-4886","paws-4915","paws-4923","paws-4932","paws-4934","paws-4957","paws-5019","paws-5054","paws-5077","paws-5100","paws-5165","paws-5168","paws-5259","paws-5298","paws-5307","paws-5334","paws-5344","paws-5356","paws-5358","paws-5404","paws-5516","paws-5585","paws-5639","paws-565","paws-5657","paws-567","paws-5773","paws-5790","paws-5822","paws-5835","paws-5841","paws-5857","paws-5892","paws-5906","paws-5945","paws-5979","paws-6000","paws-6005","paws-6009","paws-6017","paws-602","paws-6055","paws-6080","paws-6199","paws-6323","paws-6375","paws-6391","paws-6415","paws-6421","paws-6477","paws-6478","paws-6541","paws-6579","paws-658","paws-6707","paws-6715","paws-6742","paws-6788","paws-6835","paws-6839","paws-6892","paws-6920","paws-6948","paws-6968","paws-6985","paws-7030","paws-7043","paws-7081","paws-7085","paws-7098","paws-7102","paws-7103","paws-7120","paws-7137","paws-7145","paws-7187","paws-7210","paws-7227","paws-7228","paws-723","paws-7253","paws-7261","paws-731","paws-7341","paws-7413","paws-7415","paws-7483","paws-7511","paws-7540","paws-7541","paws-7619","paws-7631","paws-7633","paws-7704","paws-7707","paws-7719","paws-7731","paws-7771","paws-7777","paws-7877","paws-7893","paws-7929","paws-796","paws-7966","paws-7967","paws-7995","paws-870","paws-958","paws-964","paws-966","paws-969","paws-974"]
+}

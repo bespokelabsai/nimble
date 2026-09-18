@@ -1,0 +1,55 @@
+{
+  "dataset": "massive",
+  "subset": "de-DE",
+  "source_url": "https://huggingface.co/datasets/AmazonScience/massive",
+  "license": "CC BY 4.0",
+  "note": "Test partition of MASSIVE 1.1; scenario is the 18-way routing target. The MASSIVE id is the family, shared across locales for the same utterance.",
+  "release_year": 2022,
+  "source": "data/public/raw/massive/amazon-massive-dataset-1.1.tar.gz",
+  "source_sha256": "4cba5faa11c71437928e17cb1b9b3d8b8e727e7ea363a3a9a8045e19c0491577",
+  "dataset_sha256": "6eacfdfd5f55ee664ddf5d385deda17cbed248c18aabc06be0c643518b74ab28",
+  "seed": 20260918,
+  "count": 350,
+  "families": 350,
+  "limit": null,
+  "converted": 2974,
+  "skipped": 13547,
+  "dropped_over_length": 0,
+  "max_input_tokens": null,
+  "length_filter": "not applied; no tokenizer was supplied",
+  "selection": "Exactly the ids listed in manifest.json, matched by id with whole families; reference targets and distributions are never inspected.",
+  "ids_from": {
+    "path": "data/public/massive-en-US/manifest.json",
+    "dataset": "massive",
+    "subset": "en-US",
+    "dataset_sha256": "f173a34108c1f785f5e5bf1d83534c34393651e7f7b0b2eba19deb0d5d0f2681"
+  },
+  "types": {
+    "choice": 350
+  },
+  "labels": {
+    "cooking": 6,
+    "play": 48,
+    "iot": 29,
+    "lists": 19,
+    "calendar": 57,
+    "datetime": 13,
+    "news": 14,
+    "recommendation": 13,
+    "transport": 12,
+    "general": 22,
+    "qa": 31,
+    "social": 7,
+    "weather": 17,
+    "email": 27,
+    "audio": 9,
+    "music": 12,
+    "takeaway": 5,
+    "alarm": 9
+  },
+  "domains": {
+    "massive-de-DE": 350
+  },
+  "human_reviewed": true,
+  "ids": ["massive-10213","massive-10214","massive-10217","massive-10256","massive-10292","massive-1030","massive-10317","massive-10321","massive-10339","massive-10355","massive-10365","massive-10366","massive-10399","massive-10426","massive-10472","massive-10512","massive-10513","massive-10645","massive-10696","massive-10772","massive-10804","massive-10848","massive-10851","massive-10893","massive-10898","massive-10940","massive-10956","massive-1098","massive-10996","massive-11023","massive-11029","massive-11140","massive-1120","massive-11204","massive-11250","massive-11259","massive-11306","massive-11335","massive-11349","massive-11418","massive-11467","massive-11474","massive-11476","massive-11515","massive-11525","massive-11536","massive-11563","massive-11570","massive-11665","massive-11733","massive-11798","massive-11860","massive-11871","massive-11904","massive-1191","massive-11947","massive-12019","massive-12066","massive-12073","massive-12098","massive-12182","massive-12189","massive-12263","massive-12367","massive-124","massive-1256","massive-12675","massive-12685","massive-12722","massive-12797","massive-12802","massive-12851","massive-12908","massive-13044","massive-13102","massive-13122","massive-13140","massive-13188","massive-13221","massive-13310","massive-13359","massive-13361","massive-13400","massive-13457","massive-13506","massive-13521","massive-13547","massive-13580","massive-1360","massive-13683","massive-13693","massive-13774","massive-13900","massive-13966","massive-14","massive-14001","massive-14011","massive-14029","massive-14074","massive-14150","massive-14169","massive-14190","massive-14214","massive-14323","massive-14406","massive-14417","massive-14553","massive-14592","massive-14599","massive-14661","massive-14673","massive-14701","massive-14705","massive-14958","massive-15010","massive-15055","massive-15056","massive-15200","massive-15305","massive-1542","massive-1547","massive-15548","massive-15557","massive-15626","massive-15723","massive-15732","massive-15802","massive-15815","massive-1589","massive-15904","massive-15933","massive-15971","massive-16032","massive-16361","massive-16446","massive-16560","massive-16563","massive-16589","massive-16603","massive-16605","massive-16630","massive-16642","massive-16652","massive-16662","massive-1671","massive-16838","massive-16873","massive-16880","massive-17005","massive-17052","massive-17087","massive-17098","massive-17111","massive-1715","massive-17170","massive-17179","massive-1745","massive-1759","massive-1778","massive-1786","massive-1831","massive-189","massive-1982","massive-2057","massive-2093","massive-2160","massive-2167","massive-2271","massive-2298","massive-2354","massive-2432","massive-2451","massive-2472","massive-2480","massive-2496","massive-2497","massive-2498","massive-258","massive-2591","massive-261","massive-2611","massive-2690","massive-2733","massive-279","massive-2812","massive-2816","massive-2975","massive-2985","massive-299","massive-2995","massive-3002","massive-3008","massive-3034","massive-3077","massive-3099","massive-3124","massive-319","massive-3204","massive-3406","massive-3434","massive-3441","massive-348","massive-3546","massive-3576","massive-3595","massive-3686","massive-3725","massive-3741","massive-3762","massive-3912","massive-3982","massive-4077","massive-4090","massive-411","massive-4136","massive-4174","massive-4178","massive-4187","massive-4212","massive-4268","massive-4361","massive-442","massive-4482","massive-4491","massive-4580","massive-46","massive-4618","massive-4638","massive-4772","massive-4826","massive-4851","massive-4896","massive-4909","massive-4913","massive-4960","massive-4994","massive-5009","massive-5152","massive-5176","massive-5196","massive-5199","massive-5229","massive-5245","massive-5328","massive-5330","massive-5339","massive-5370","massive-5439","massive-5570","massive-560","massive-5611","massive-5727","massive-5823","massive-5917","massive-5974","massive-5985","massive-6014","massive-6055","massive-614","massive-6178","massive-6268","massive-6288","massive-63","massive-6313","massive-6382","massive-6405","massive-6433","massive-6578","massive-6621","massive-6713","massive-6722","massive-6729","massive-6744","massive-6764","massive-6798","massive-6806","massive-6909","massive-6980","massive-7013","massive-7044","massive-7055","massive-7199","massive-7294","massive-730","massive-7463","massive-7503","massive-7528","massive-7531","massive-7542","massive-7556","massive-7565","massive-7598","massive-765","massive-7697","massive-7751","massive-781","massive-7844","massive-7863","massive-7870","massive-7908","massive-7919","massive-7946","massive-7978","massive-7981","massive-8","massive-8001","massive-8125","massive-8129","massive-8140","massive-8148","massive-827","massive-8294","massive-8320","massive-8336","massive-8358","massive-8388","massive-8402","massive-8431","massive-8516","massive-8525","massive-8539","massive-8579","massive-86","massive-861","massive-8635","massive-8679","massive-870","massive-8782","massive-8904","massive-8907","massive-9053","massive-9074","massive-9112","massive-920","massive-9303","massive-9327","massive-9358","massive-9561","massive-9617","massive-962","massive-9637","massive-967","massive-9680","massive-9691","massive-9844","massive-9853","massive-9875","massive-9912","massive-9931","massive-9986"]
+}

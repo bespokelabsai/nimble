@@ -1,0 +1,35 @@
+{
+  "dataset": "pubmedqa",
+  "subset": "",
+  "source_url": "https://huggingface.co/datasets/qiaojin/PubMedQA",
+  "license": "MIT",
+  "note": "The 1,000-instance expert-labeled subset (pqa_labeled). State is the question and the joined abstract contexts; the long answer is excluded because it states the decision.",
+  "release_year": 2019,
+  "source": "data/public/raw/pubmedqa/train.jsonl",
+  "source_sha256": "0b9b06e379d39fff0b7c7acb33bdeb96c843049f1ad071e41c02aeaae16277fe",
+  "dataset_sha256": "8ee766a759a60280373f45a19a62c9e36462b1176508f193621095e102403a40",
+  "seed": 20260918,
+  "count": 250,
+  "families": 250,
+  "limit": 250,
+  "converted": 1000,
+  "skipped": 0,
+  "dropped_over_length": 0,
+  "max_input_tokens": null,
+  "length_filter": "not applied; no tokenizer was supplied",
+  "selection": "Whole families drawn without replacement, round-robin across domain strata. Only family and domain metadata determine the order; reference targets and distributions are never inspected. Contrastive siblings are always kept together.",
+  "ids_from": null,
+  "types": {
+    "choice": 250
+  },
+  "labels": {
+    "yes": 133,
+    "no": 80,
+    "maybe": 37
+  },
+  "domains": {
+    "pubmedqa": 250
+  },
+  "human_reviewed": true,
+  "ids": ["pubmedqa-10135926","pubmedqa-10158597","pubmedqa-10201555","pubmedqa-10354335","pubmedqa-10381996","pubmedqa-10430303","pubmedqa-10575390","pubmedqa-10593212","pubmedqa-10605400","pubmedqa-10749257","pubmedqa-10781708","pubmedqa-10927144","pubmedqa-10966943","pubmedqa-11034241","pubmedqa-11149643","pubmedqa-11247896","pubmedqa-11380492","pubmedqa-11411430","pubmedqa-11413427","pubmedqa-11481172","pubmedqa-11500608","pubmedqa-11713724","pubmedqa-11867487","pubmedqa-11955750","pubmedqa-11978239","pubmedqa-12040336","pubmedqa-12090319","pubmedqa-12094116","pubmedqa-12098035","pubmedqa-12121321","pubmedqa-12221908","pubmedqa-12419743","pubmedqa-12442934","pubmedqa-12607120","pubmedqa-12607666","pubmedqa-12632437","pubmedqa-12913347","pubmedqa-12920330","pubmedqa-12970636","pubmedqa-14599616","pubmedqa-14627582","pubmedqa-14697414","pubmedqa-14968373","pubmedqa-14976655","pubmedqa-15052394","pubmedqa-15065192","pubmedqa-15125825","pubmedqa-15151701","pubmedqa-15208005","pubmedqa-15381614","pubmedqa-15466981","pubmedqa-15483019","pubmedqa-15670262","pubmedqa-15708048","pubmedqa-15800018","pubmedqa-15954832","pubmedqa-15995461","pubmedqa-16713745","pubmedqa-17008699","pubmedqa-17076091","pubmedqa-17224424","pubmedqa-17244100","pubmedqa-17274051","pubmedqa-17276182","pubmedqa-17276801","pubmedqa-17355582","pubmedqa-17453263","pubmedqa-17483607","pubmedqa-17489316","pubmedqa-17502203","pubmedqa-17606778","pubmedqa-17610439","pubmedqa-17682349","pubmedqa-17691856","pubmedqa-17715311","pubmedqa-17910536","pubmedqa-18019905","pubmedqa-18096128","pubmedqa-18179827","pubmedqa-18182265","pubmedqa-18222909","pubmedqa-18243752","pubmedqa-18307476","pubmedqa-18378554","pubmedqa-18472368","pubmedqa-18537964","pubmedqa-18568290","pubmedqa-18570208","pubmedqa-18603989","pubmedqa-18607272","pubmedqa-18619710","pubmedqa-18667100","pubmedqa-18693227","pubmedqa-18714572","pubmedqa-18719011","pubmedqa-18832500","pubmedqa-18926458","pubmedqa-19058191","pubmedqa-19100463","pubmedqa-19237087","pubmedqa-19302863","pubmedqa-19322056","pubmedqa-19327500","pubmedqa-19394934","pubmedqa-19401574","pubmedqa-19406119","pubmedqa-19409117","pubmedqa-19468282","pubmedqa-19504993","pubmedqa-19520213","pubmedqa-19578820","pubmedqa-19640728","pubmedqa-19643525","pubmedqa-19653482","pubmedqa-19694846","pubmedqa-19913785","pubmedqa-19925761","pubmedqa-20064872","pubmedqa-20121683","pubmedqa-20130378","pubmedqa-20197761","pubmedqa-20297950","pubmedqa-20354380","pubmedqa-20488985","pubmedqa-20497146","pubmedqa-20571467","pubmedqa-20594006","pubmedqa-21198823","pubmedqa-21228436","pubmedqa-21256734","pubmedqa-21361755","pubmedqa-21368683","pubmedqa-21394762","pubmedqa-21402341","pubmedqa-21431987","pubmedqa-21459725","pubmedqa-21569408","pubmedqa-21645374","pubmedqa-21669959","pubmedqa-21739621","pubmedqa-21745056","pubmedqa-21789019","pubmedqa-21823940","pubmedqa-21849531","pubmedqa-21880023","pubmedqa-21946341","pubmedqa-22011946","pubmedqa-22108230","pubmedqa-22227642","pubmedqa-22251324","pubmedqa-22350859","pubmedqa-22497340","pubmedqa-22513023","pubmedqa-22519710","pubmedqa-22564465","pubmedqa-22658587","pubmedqa-22694248","pubmedqa-22706226","pubmedqa-22813804","pubmedqa-22825590","pubmedqa-22849512","pubmedqa-22954812","pubmedqa-22990761","pubmedqa-23025584","pubmedqa-23149821","pubmedqa-23347337","pubmedqa-23412195","pubmedqa-23448747","pubmedqa-23449952","pubmedqa-23455575","pubmedqa-23497210","pubmedqa-23506394","pubmedqa-23719685","pubmedqa-23735520","pubmedqa-23736032","pubmedqa-23774337","pubmedqa-23860049","pubmedqa-24019262","pubmedqa-24061619","pubmedqa-24074624","pubmedqa-24172579","pubmedqa-24183388","pubmedqa-24270957","pubmedqa-24318956","pubmedqa-24434052","pubmedqa-24577079","pubmedqa-24851767","pubmedqa-24946973","pubmedqa-24995509","pubmedqa-25007420","pubmedqa-25034219","pubmedqa-25103647","pubmedqa-25155638","pubmedqa-25156467","pubmedqa-25186850","pubmedqa-25218577","pubmedqa-25255719","pubmedqa-25336163","pubmedqa-25394614","pubmedqa-25417760","pubmedqa-25480629","pubmedqa-25487603","pubmedqa-25501465","pubmedqa-25699562","pubmedqa-25735444","pubmedqa-25752725","pubmedqa-25793749","pubmedqa-25810292","pubmedqa-25986020","pubmedqa-26085176","pubmedqa-26126304","pubmedqa-26175531","pubmedqa-26304701","pubmedqa-26419377","pubmedqa-26460153","pubmedqa-26471488","pubmedqa-26485091","pubmedqa-26556589","pubmedqa-26601554","pubmedqa-26686513","pubmedqa-26701174","pubmedqa-26907557","pubmedqa-26999038","pubmedqa-27040842","pubmedqa-27044366","pubmedqa-27050505","pubmedqa-27078715","pubmedqa-27288618","pubmedqa-27549226","pubmedqa-27592038","pubmedqa-27643961","pubmedqa-27896825","pubmedqa-27909738","pubmedqa-27928673","pubmedqa-28011794","pubmedqa-28196511","pubmedqa-28707539","pubmedqa-7497757","pubmedqa-7860319","pubmedqa-8199520","pubmedqa-8847047","pubmedqa-8916748","pubmedqa-9140335","pubmedqa-9191526","pubmedqa-9199905","pubmedqa-9582182","pubmedqa-9602458","pubmedqa-9745063","pubmedqa-9792366","pubmedqa-9854965"]
+}

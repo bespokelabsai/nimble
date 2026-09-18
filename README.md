@@ -439,6 +439,10 @@ the merged model that the Mac and Linux quickstarts use. See the
 file saved with each model. In the contract file, we record the base model and
 the prompt format that the model expects.
 
+For external, human-labeled tests on tasks outside these training categories, see
+the [public benchmarks guide](docs/PUBLIC_BENCHMARKS.md), which runs Bespoke-Nimble-9B
+and Jev on the same records from thirteen public subsets, starting with VitaminC.
+
 ### Observed inference latency
 
 In the table below, each time is in milliseconds per example. We calculated
@@ -471,6 +475,7 @@ not write an explanation.
 | Compare Nimble and Jev interactively | [Comparison app](docs/COMPARISON_APP.md) |
 | Host the published checkpoint on Modal | [SGLang deployment](docs/MODAL_SERVING.md) · [Try the public API](docs/TRY_NIMBLE.md) |
 | Understand the retained training and evaluation data | [Dataset guide](docs/DATASET.md) |
+| Evaluate on public, human-labeled benchmarks | [Public benchmarks](docs/PUBLIC_BENCHMARKS.md) |
 | Create or replay contrastive training data | [Curation guide](docs/TRAINING_EVAL_CURATION.md) |
 | Train or use a schema adapter | [Training guide](docs/NIMBLE_TRAINING.md) |
 

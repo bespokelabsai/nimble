@@ -1,11 +1,12 @@
 """CPU numerical tests of the CUDA runner's backbone and candidate head path."""
 
 import unittest
+from types import SimpleNamespace
 
 import torch
 from transformers import Gemma3ForCausalLM, Gemma3TextConfig, Qwen3_5ForCausalLM, Qwen3_5TextConfig
 
-from nimble.scoring.cuda_scorer import candidate_projection
+from nimble.scoring.cuda_scorer import candidate_projection, physical_weight
 
 
 class CudaProjectionTests(unittest.TestCase):
@@ -66,6 +67,28 @@ class CudaProjectionTests(unittest.TestCase):
                 reference = model(ids, use_cache=False).logits[:, -1]
         torch.testing.assert_close(eager, reference, atol=1e-5, rtol=1e-5)
         torch.testing.assert_close(eager, excluded, atol=1e-5, rtol=1e-5)
+
+
+class OffloadedHeadTests(unittest.TestCase):
+    """accelerate offload leaves a meta parameter whose values live in the hook's weights map."""
+
+    def offload(self, head):
+        real = head.weight.detach().clone()
+        head.weight = torch.nn.Parameter(torch.empty(head.weight.shape, device="meta"))
+        head._hf_hook = SimpleNamespace(weights_map={"weight": real}, execution_device="cpu")
+
+    def test_projection_from_an_offloaded_head_matches_the_resident_head(self):
+        torch.manual_seed(17)
+        head, hidden = torch.nn.Linear(4, 6, bias=False), torch.randn(1, 4)
+        with torch.inference_mode():
+            expected = head(hidden)[:, [5, 2]]
+            self.offload(head)
+            actual = candidate_projection(hidden, physical_weight(head), [5, 2])
+        torch.testing.assert_close(actual, expected, atol=1e-5, rtol=1e-5)
+
+    def test_meta_head_without_a_weights_map_is_rejected(self):
+        with self.assertRaises(RuntimeError):
+            physical_weight(torch.nn.Linear(4, 6, bias=False, device="meta"))
 
 
 if __name__ == "__main__":

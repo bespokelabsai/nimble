@@ -14,18 +14,28 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--adapter', type=Path, required=True)
     parser.add_argument('--output', type=Path, required=True)
+    parser.add_argument('--base', type=Path,
+                        help='Local snapshot of the pinned base; defaults to the Hugging Face hub cache layout')
     args = parser.parse_args()
     contract = json.loads((args.adapter/'schema_config.json').read_text())
     prompt_hash = hashlib.sha256((PROJECT_ROOT/'nimble/scoring/parallel_schema.py').read_bytes()).hexdigest()
     assert contract['prompt_code_sha256'] == prompt_hash
-    base_path = PROJECT_ROOT/'.cache/huggingface/hub'/('models--'+contract['model'].replace('/', '--'))/'snapshots'/contract['revision']
+    base_path = args.base or PROJECT_ROOT/'.cache/huggingface/hub'/('models--'+contract['model'].replace('/', '--'))/'snapshots'/contract['revision']
     if not base_path.is_dir():
         raise FileNotFoundError(f'Pinned base must already be cached: {base_path}')
+    if args.base is not None:
+        if not (args.base/'config.json').is_file():
+            raise FileNotFoundError(f'--base needs a complete snapshot with config.json: {args.base}')
+        named = json.loads((args.base/'config.json').read_text(encoding='utf-8')).get('_name_or_path', '')
+        if '/' in named and named != contract['model']:
+            raise ValueError(f'--base config names {named!r}, but the adapter contract pins {contract["model"]!r}')
+    base_path = base_path.resolve()
     adapter_hash = hashlib.sha256((args.adapter/'adapter_model.safetensors').read_bytes()).hexdigest()
     ready = args.output/'READY.json'
     if ready.exists():
         saved = json.loads(ready.read_text())
-        assert saved['adapter_sha256'] == adapter_hash and saved['base_revision'] == contract['revision']
+        assert (saved['adapter_sha256'] == adapter_hash and saved['base_revision'] == contract['revision']
+                and saved.get('base_path') == str(base_path))
         print('Reusing verified merge:', args.output)
         return
     if args.output.exists():
@@ -51,7 +61,7 @@ def main():
             for chunk in iter(lambda: stream.read(8*1024*1024), b''):
                 digest.update(chunk)
         hashes[path.name] = digest.hexdigest()
-    manifest = {'base_model': contract['model'], 'base_revision': contract['revision'],
+    manifest = {'base_model': contract['model'], 'base_revision': contract['revision'], 'base_path': str(base_path),
                 'adapter_sha256': adapter_hash, 'prompt_sha256': prompt_hash,
                 'training_examples': contract['data_audit']['training_rows'],
                 'heldout_examples': contract['data_audit']['validation_rows'],

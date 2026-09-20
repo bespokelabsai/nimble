@@ -329,8 +329,8 @@ There is one training set and one held-out set.
 
 | File | Examples | Use |
 | --- | ---: | --- |
-| `data/train.jsonl` | 2,826 | 2,676 used to train the published model |
-| `data/eval.jsonl` | 324 | Final evaluation only |
+| [data/train.jsonl](data/train.jsonl) | 2,676 | Used to train the published model |
+| [data/eval.jsonl](data/eval.jsonl) | 324 | Frozen final evaluation only |
 
 The published model's training data covers **10 subject categories**. The tables
 below count only its 2,676 training examples and the 324-example holdout.
@@ -520,7 +520,7 @@ nimble/
   evaluation/    # Quality metrics and inference benchmarks
   training/      # Schema-aware CUDA LoRA training
 examples/        # Schemas and saved example outputs
-data/            # train.jsonl (2,826), eval.jsonl (324), and verification metadata
+data/            # train.jsonl (2,676), eval.jsonl (324), and verification metadata
 evaluations/     # Generated locally; not included in Git
 assets/          # Comparison graphics, source results, and videos
 docs/            # Current usage, training, curation, and deployment guides

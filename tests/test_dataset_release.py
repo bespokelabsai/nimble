@@ -6,7 +6,7 @@ import unittest
 from pathlib import Path
 
 from nimble.paths import PROJECT_ROOT
-from nimble.training.augmented_data import validate_augmented_data
+from nimble.training.evidence_data import validate_evidence_data
 from nimble.training.schema_data import fingerprint, read_rows
 from nimble.training.verify_dataset import verify
 
@@ -20,7 +20,9 @@ class CanonicalDatasetTests(unittest.TestCase):
 
     def test_release_is_self_contained_and_holdout_is_unchanged(self):
         result = verify(self.directory)
-        self.assertEqual((result['training_rows'], result['holdout_rows']), (2826, 324))
+        self.assertEqual((result['training_rows'], result['holdout_rows']), (2676, 324))
+        self.assertEqual(result['sha256']['train.jsonl'],
+                         'beadbb9b81837f7c339e090cd210ce91f65a55f2a3ada1ce9b623765b8d6fe2e')
         self.assertEqual(result['sha256']['eval.jsonl'],
                          '8e9e48b8de5206593912ae01ddc95bd77e40ad2ecf4c9292c1711290eca0d896')
         self.assertEqual({p.name for p in self.directory.iterdir()},
@@ -36,12 +38,12 @@ class CanonicalDatasetTests(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'Frozen dataset bytes changed: eval.jsonl'):
                 verify(root)
 
-    def test_review_reconstruction_rejects_tampering_even_with_new_training_hash(self):
+    def test_certificate_reconstruction_rejects_tampering_even_with_new_training_hash(self):
         rows = copy.deepcopy(self.rows)
-        rows[-1]['reference']['reason'] = 'Changed after review'
+        rows[-1]['reference']['reason'] = 'Changed after verification'
         manifest = {**self.manifest, 'train_sha256': fingerprint(rows)}
-        with self.assertRaisesRegex(ValueError, 'Reviewed release bytes changed'):
-            validate_augmented_data(rows, manifest)
+        with self.assertRaisesRegex(ValueError, 'reconstruction'):
+            validate_evidence_data(rows, manifest)
 
 
 if __name__ == '__main__':

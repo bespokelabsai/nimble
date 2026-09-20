@@ -12,6 +12,9 @@ __pycache__/
 *.py[cod]
 
 # Generated releases, API response caches, and evaluation artifacts stay local.
-/data/
+/data/*
+!/data/train.jsonl
+!/data/eval.jsonl
+!/data/manifest.json
 /evaluations/
 /ignore/

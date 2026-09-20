@@ -1,6 +1,6 @@
 # Training Bespoke-Nimble
 
-The retained dataset is **2,826 training examples** in `data/train.jsonl` and the
+The committed dataset is **2,676 training examples** in `data/train.jsonl` and the
 unchanged **324-example holdout** in `data/eval.jsonl`. Keep `data/manifest.json`
 with them. [Dataset details](DATASET.md) explain the provenance and checksums.
 
@@ -10,7 +10,7 @@ with them. [Dataset details](DATASET.md) explain the provenance and checksums.
 .venv-curator/bin/python -m nimble.training.verify_dataset
 ```
 
-The loader verifies evidence certificates, blind reviews, frozen file hashes,
+The loader verifies evidence certificates, frozen file hashes,
 and separation of training and evaluation families. It rebuilds scoring inputs
 and token IDs in memory, so old source folders and token-export files are not
 needed. For the pinned 9B tokenizer, it also checks the regenerated export against
@@ -29,10 +29,10 @@ python -m nimble.training.schema_train train \
   --output-dir .cache/runs/nimble-9b-new \
   --learning-rate 5e-5 --lora-rank 16 --seed 17 \
   --batch-size 2 --gradient-accumulation 4 --max-length 2048 \
-  --max-steps 1062 --warmup-steps 107 --save-steps 354 --stop-after-epochs 1
+  --max-steps 1005 --warmup-steps 101 --save-steps 335 --stop-after-epochs 1
 ```
 
-This fits one epoch (354 optimizer updates) with effective batch size 8, using
+This fits one epoch (335 optimizer updates) with effective batch size 8, using
 the previously selected three-epoch linear learning-rate schedule. Training uses
 BF16 LoRA and cross-entropy over the allowed candidate logits. It does not train
 on generated reasoning or teacher probabilities. Each example's gold label stays
@@ -57,7 +57,8 @@ python -m nimble.training.schema_train score \
 ```
 
 The saved adapter directory retains its historical name. The published
-Bespoke-Nimble-9B checkpoint used the earlier 2,676-example subset; the separate
-local v2 checkpoint used all 2,826 examples. Cleaning the datasets does not change
+Bespoke-Nimble-9B checkpoint used the committed 2,676-example training set; the separate
+local v2 checkpoint used 2,826 examples, including 150 additional cases not in this release.
+Publishing the datasets does not change
 these trained models. See the [published comparison](../README.md#evaluation-on-324-held-out-examples)
 for the released checkpoint's results.

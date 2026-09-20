@@ -57,6 +57,7 @@ curl --fail-with-body --retry 60 --retry-delay 5 --retry-max-time 600 \
 The probabilities compare the supplied options. `confidence` summarizes how
 concentrated the distribution is; it is not a probability that the model is correct.
 
-Keep prompts short: the complete context and schema must fit within 2,048 tokens
-per field. Choice and Score support 2–26 options. The demo has one GPU and can
+The complete context and schema must fit within 8,192 tokens per field. The model was
+trained on prompts of up to 2,048 tokens, so shorter prompts are the better-tested
+range. Choice and Score support 2–26 options. The demo has one GPU and can
 return a busy response (529); wait briefly and retry.

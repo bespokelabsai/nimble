@@ -97,11 +97,14 @@ confidence statistic. Probabilities are conditional on the supplied candidates.
 - One H100 GPU container maximum; zero minimum; scale down after 120 idle seconds.
   Modal's `H100!` setting prevents automatic H200 substitution for benchmarking.
 - Model loading and kernel compilation make the first request after idling slower.
-- 2–26 Choice candidates or Score levels, at most 64 questions, and 2,048 prompt
-  tokens per branch. The backend reserves one additional token. Oversized prompts
-  are rejected, never truncated.
+- 2–26 Choice candidates or Score levels, at most 64 questions, and 8,192 prompt
+  tokens per branch by default (`NIMBLE_MAX_PROMPT_TOKENS` overrides it). The adapter
+  was trained on prompts of up to 2,048 tokens, so longer prompts are accepted but less
+  tested. The backend reserves one additional token. Oversized prompts are rejected,
+  never truncated. `/v1/limits` reports both numbers.
 - Four active evaluations per container, at most 32 concurrent branches, and a
-  65,536-token total submitted-prompt budget per evaluation.
+  262,176-token total submitted-prompt budget per evaluation by default
+  (`32 × (NIMBLE_MAX_PROMPT_TOKENS + 1)`).
 - Shared prefix warmup followed by concurrent field scoring. SGLang currently
   emits one discarded warmup token and one token per field to expose the selected
   next-token log probabilities: `N + 1` output tokens for `N` fields. This is not a

@@ -17,7 +17,7 @@ from openjev.service import EvaluationService
 from nimble.evaluation.evaluate_pilot import adapt_input
 from nimble.scoring.parallel_schema import prepare_prompts
 from nimble.serving.compiler import NimbleCompiler
-from nimble.serving.server import make_app
+from nimble.serving.server import MAX_PROMPT_TOKENS, make_app
 
 
 @pytest.fixture(scope="module")
@@ -55,9 +55,14 @@ def test_candidate_and_length_limits(tokenizer, payload):
     with pytest.raises(ValueError, match="1–26"):
         NimbleCompiler(tokenizer).prepare(SystemOneRequest.model_validate(payload))
     del payload["questions"]["department"]
-    payload["state"] = "Long context " * 3000
-    with pytest.raises(ValueError, match="Nothing was truncated"):
+    payload["state"] = "Long context " * 1500
+    with pytest.raises(ValueError, match="Nothing was truncated"):  # over the trained 2,048 default
         NimbleCompiler(tokenizer).prepare(SystemOneRequest.model_validate(payload))
+    longer = NimbleCompiler(tokenizer, max_prompt_tokens=8192).prepare(SystemOneRequest.model_validate(payload))
+    assert 2048 < len(longer.branches[0].input_ids) <= 8192
+    payload["state"] = "Long context " * 5000
+    with pytest.raises(ValueError, match="Nothing was truncated"):
+        NimbleCompiler(tokenizer, max_prompt_tokens=8192).prepare(SystemOneRequest.model_validate(payload))
 
 
 class Backend:
@@ -85,9 +90,9 @@ class Backend:
 
 def test_parallel_scoring_auth_and_catalogue(tokenizer, payload):
     settings = Settings(model="test", served_model_name="test", model_alias="nimble-latest",
-                        api_key="local-test-secret", max_input_tokens=2049)
+                        api_key="local-test-secret", max_input_tokens=MAX_PROMPT_TOKENS + 1)
     backend = Backend()
-    service = EvaluationService(settings, NimbleCompiler(tokenizer), backend)
+    service = EvaluationService(settings, NimbleCompiler(tokenizer, max_prompt_tokens=MAX_PROMPT_TOKENS), backend)
     with TestClient(make_app(settings, service)) as client:
         assert client.post("/v1/systemone", json=payload).status_code == 401
         assert backend.calls == 0
@@ -100,5 +105,8 @@ def test_parallel_scoring_auth_and_catalogue(tokenizer, payload):
         assert answers["department"]["choice"] == "technical"
         assert response.json()["usage"]["output_tokens"] == 4
         assert backend.calls == 4 and backend.peak == 3
-        assert client.get("/v1/limits", headers=headers).json()["max_answers_per_question"] == 26
+        limits = client.get("/v1/limits", headers=headers).json()
+        assert limits["max_answers_per_question"] == 26
+        assert limits["max_input_tokens"] == MAX_PROMPT_TOKENS + 1
+        assert (limits["max_prompt_tokens"], limits["trained_prompt_tokens"]) == (MAX_PROMPT_TOKENS, 2048)
         assert client.get("/openapi.json", headers=headers).status_code == 200

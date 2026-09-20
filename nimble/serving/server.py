@@ -22,6 +22,10 @@ from nimble.scoring import parallel_schema
 from .compiler import NimbleCompiler
 
 MODEL = "bespokelabs/Bespoke-Nimble-9B"
+# Keep the trained prompt budget visible while allowing longer inference inputs.
+# Override the serving budget with NIMBLE_MAX_PROMPT_TOKENS.
+TRAINED_PROMPT_TOKENS = 2048
+MAX_PROMPT_TOKENS = int(os.environ.get("NIMBLE_MAX_PROMPT_TOKENS", "8192"))
 
 
 def make_app(settings, service):
@@ -29,7 +33,8 @@ def make_app(settings, service):
     app.title = "Nimble"
     app.description = (
         "Nimble's trained candidate scoring on SGLang. Choice, Noul, and Score; "
-        "26 candidates, 2048 prompt tokens. Question IDs and option keys are included "
+        f"26 candidates, up to {MAX_PROMPT_TOKENS} prompt tokens (trained at {TRAINED_PROMPT_TOKENS}). "
+        "Question IDs and option keys are included "
         "in the trained prompt. Confidence is entropy concentration, not calibrated accuracy."
     )
     app.router.routes[:] = [r for r in app.router.routes if r.path not in {"/", "/v1/models", "/v1/limits"}]
@@ -50,7 +55,8 @@ def make_app(settings, service):
     @app.get("/v1/limits")
     async def limits():
         return {"max_answers_per_question": 26, "max_questions": 64,
-                "max_prompt_tokens": 2048, "max_input_tokens": settings.max_input_tokens,
+                "max_prompt_tokens": MAX_PROMPT_TOKENS, "trained_prompt_tokens": TRAINED_PROMPT_TOKENS,
+                "max_input_tokens": settings.max_input_tokens,
                 "max_body_bytes": settings.max_body_bytes,
                 "max_total_input_tokens": settings.max_total_input_tokens,
                 "max_concurrent_requests": settings.max_concurrent_requests}
@@ -80,14 +86,15 @@ async def main():
     if hashlib.sha256(Path(parallel_schema.__file__).read_bytes()).hexdigest() != contract["prompt_code_sha256"]:
         raise RuntimeError("Local prompt compiler differs from the published training contract")
     settings = Settings(model=str(path), served_model_name=MODEL, model_alias="nimble-latest",
-                        max_input_tokens=2049, max_total_input_tokens=65536,
+                        max_input_tokens=MAX_PROMPT_TOKENS + 1,
+                        max_total_input_tokens=32 * (MAX_PROMPT_TOKENS + 1),
                         max_concurrent_requests=4, max_concurrent_branches=32)
     command = ["/opt/sglang/bin/python", "-m", "sglang.launch_server",
                "--model-path", str(path), "--tokenizer-path", str(path),
                "--host", "127.0.0.1", "--port", "30000",
                # Qwen honors the config field; 0.5.19's CLI flag has a narrower allowlist.
                "--json-model-override-args", '{"language_model_only": true}',
-               "--context-length", "2049", "--dtype", "bfloat16",
+               "--context-length", str(MAX_PROMPT_TOKENS + 1), "--dtype", "bfloat16",
                "--mem-fraction-static", "0.80", "--attention-backend", "flashinfer",
                "--mamba-radix-cache-strategy", "extra_buffer",
                "--cuda-graph-backend-prefill", "breakable", "--cuda-graph-max-bs-decode", "32",
@@ -99,7 +106,8 @@ async def main():
                                     limits=httpx.Limits(max_connections=40)) as client:
             backend = SGLangClient(settings, client)
             await wait_ready(backend, process, 1100)
-            compiler = NimbleCompiler(AutoTokenizer.from_pretrained(path, local_files_only=True))
+            compiler = NimbleCompiler(AutoTokenizer.from_pretrained(path, local_files_only=True),
+                                      max_prompt_tokens=MAX_PROMPT_TOKENS)
             app = make_app(settings, EvaluationService(settings, compiler, backend))
             app.state.startup_seconds = round(time.monotonic() - started, 2)
             server = uvicorn.Server(uvicorn.Config(app, host="0.0.0.0", port=8000, access_log=False))

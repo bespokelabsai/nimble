@@ -13,8 +13,9 @@ def serialize(value):
 
 
 class NimbleCompiler:
-    def __init__(self, tokenizer):
+    def __init__(self, tokenizer, max_prompt_tokens=2048):
         self.tokenizer = tokenizer
+        self.max_prompt_tokens = max_prompt_tokens
 
     def prepare(self, request):
         schema = {}
@@ -33,7 +34,7 @@ class NimbleCompiler:
                 field.update(type="enum", choices=[str(i) for i in range(len(question.criteria))],
                              choice_descriptions={str(i): text for i, text in enumerate(question.criteria)})
             schema[name] = field
-        prepared = prepare_prompts(self.tokenizer, serialize(request.state), schema, 2048)
+        prepared = prepare_prompts(self.tokenizer, serialize(request.state), schema, self.max_prompt_tokens)
         return PreparedRequest(prepared.prefix_ids, [
             Branch(name, request.questions[name], ids, labels, [choice_key(v) for v in choices])
             for name, ids, labels, choices in zip(

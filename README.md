@@ -2,7 +2,7 @@
 
 **Data, Model, Recipe for an open Jev**
 
-[Model](https://huggingface.co/bespokelabs/Bespoke-Nimble-9B) · [Capabilities](#capabilities) · [Quickstart](#quickstart) · [Methodology](#methodology) · [Documentation and development](#documentation-and-development) · [Citation](#citation)
+[Model](https://huggingface.co/bespokelabs/Bespoke-Nimble-9B) · [Updates](#updates) · [Capabilities](#capabilities) · [Quickstart](#quickstart) · [Methodology](#methodology) · [Documentation and development](#documentation-and-development) · [Citation](#citation)
 
 ![Introducing Bespoke Nimble. Serving reads the prompt once and then scores one answer token per question. Data curation changes one fact so that the correct answer flips. Training fine-tunes Qwen3.5-9B with LoRA on the answer tokens only. On 324 held-out examples, Bespoke-Nimble-9B matches 90.1% of the reference labels, compared with 66.4% for its base model and 93.2% for Jev 1.13.0.](assets/diagrams/nimble-infographic.svg)
 
@@ -21,6 +21,29 @@ Note that we did not distill from Jev. The point of the repository is to show ho
 
 You can run [Bespoke-Nimble-9B](https://huggingface.co/bespokelabs/Bespoke-Nimble-9B)
 on a Mac with Apple Silicon or on a machine with an NVIDIA GPU.
+
+## Updates
+
+- On September 22, 2026, we fitted a temperature for Bespoke-Nimble-9B. With
+  this temperature, the probabilities better match how often the answers are
+  right. The model picks the same answers as before. Noul probabilities and
+  Score values do change, so if you compare them with a threshold, test the
+  threshold again. See [Probability temperature](#probability-temperature) and
+  [PR #7](https://github.com/bespokelabsai/nimble/pull/7).
+- On September 20, 2026, we published the 2,676 training examples and the 324
+  held-out examples for Bespoke-Nimble-9B. We had left them out of the first
+  release by mistake. See the [dataset guide](docs/DATASET.md) and
+  [PR #5](https://github.com/bespokelabsai/nimble/pull/5).
+- On September 19, 2026, we raised the prompt limit of the hosted API to 8,192
+  tokens for each question. The model was trained on prompts of up to 2,048
+  tokens, so shorter prompts are better tested. See the
+  [SGLang deployment guide](docs/MODAL_SERVING.md) and
+  [PR #4](https://github.com/bespokelabsai/nimble/pull/4).
+- On September 18, 2026, [Edgar Dyck](https://github.com/eddited17) added a
+  public benchmark suite. With it, you can run Bespoke-Nimble-9B and Jev on the
+  same records from 13 public subsets with human labels. The
+  [public benchmarks guide](docs/PUBLIC_BENCHMARKS.md) has the steps and the
+  results. See [PR #2](https://github.com/bespokelabsai/nimble/pull/2).
 
 ## Capabilities
 

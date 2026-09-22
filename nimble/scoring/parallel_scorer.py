@@ -12,6 +12,7 @@ import mlx.core as mx
 from mlx_lm import load
 from mlx_lm.models.cache import ArraysCache, KVCache
 
+from nimble.scoring.calibration import fitted_temperature
 from nimble.scoring.parallel_schema import MODEL_ID, REVISION, choice_key, parse_schema, prepare_prompts
 
 
@@ -47,10 +48,13 @@ def candidate_projection(hidden, weight, token_ids):
 
 
 class ParallelScorer:
-    def __init__(self, model_path=None, max_input_tokens=4096, temperature=1.0,
+    def __init__(self, model_path=None, max_input_tokens=4096, temperature=None,
                  model_id=MODEL_ID, revision=REVISION):
         if not isinstance(max_input_tokens, int) or max_input_tokens < 1:
             raise ValueError("max_input_tokens must be a positive integer.")
+        if temperature is None:
+            # The checkpoint's fitted temperature when it has one, else raw probabilities.
+            temperature = fitted_temperature(model_id, revision) or 1.0
         if not math.isfinite(temperature) or temperature <= 0:
             raise ValueError("temperature must be positive and finite.")
         if not mx.metal.is_available():
@@ -179,9 +183,10 @@ class ParallelScorer:
                 "candidate_token_ids": ids,
                 "code_to_choice": dict(zip("ABCDEFGHIJKLMNOPQRSTUVWXYZ", choices)),
             }
-        return {"model": getattr(self, "model_id", MODEL_ID),
-                "revision": getattr(self, "revision", REVISION), "backend": "mlx",
-                "temperature": self.temperature, "temperature_fitted": False,
+        model_id, revision = getattr(self, "model_id", MODEL_ID), getattr(self, "revision", REVISION)
+        return {"model": model_id, "revision": revision, "backend": "mlx",
+                "temperature": self.temperature,
+                "temperature_fitted": self.temperature == fitted_temperature(model_id, revision),
                 "context": context, "output": output, "fields": fields, "metrics": stats}
 
 

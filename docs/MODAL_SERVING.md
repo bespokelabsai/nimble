@@ -91,6 +91,12 @@ probability of true. Score returns the expected zero-based rubric index and the
 distribution over levels. Choice/Score confidence is one minus normalized entropy,
 not a calibrated probability of correctness or an exact reproduction of Jev's
 confidence statistic. Probabilities are conditional on the supplied candidates.
+Before it normalizes the candidate log probabilities, the server divides them by
+the temperature fitted for the served revision, which is 2.179. As a result, the
+probabilities are less extreme. The selected Choice is the same, but Noul
+probabilities and Score values change, so test any threshold on them again. A
+revision without a fitted temperature is served at temperature 1. See
+[Probability temperature](../README.md#probability-temperature).
 
 ## Limits and operation
 
@@ -115,7 +121,8 @@ confidence statistic. Probabilities are conditional on the supplied candidates.
   inputs or arbitrary free-form generation endpoints.
 - The merged BF16 weights and SGLang kernels may produce small numerical
   differences from unmerged PyTorch/MLX inference. A smoke test is not a new
-  accuracy evaluation of the hosted runtime.
+  accuracy evaluation of the hosted runtime. The temperature was fitted with
+  unmerged PyTorch inference and has not been checked again on this runtime.
 
 Inspect and stop the app through the Modal dashboard, or use
 `deploy/modal_cli.py app list --json` and `deploy/modal_cli.py app stop <app-id>`.
@@ -143,7 +150,8 @@ benchmark. Successful backend initialization took 144 seconds, excluding earlier
 deployment troubleshooting and scheduling.
 
 The model returned refund probability 0.99945, selected `billing` with probability
-0.99867, and placed urgency near level zero. Both requests returned normalized
+0.99867, and placed urgency near level zero. This check ran at temperature 1,
+before we fitted a temperature. Both requests returned normalized
 distributions and four accounted output tokens. Scheduler logs showed three field
 branches in a single batch: 768 cached tokens on the first field batch and 960 on
 the repeat. The Rust response omits its cache counter, so the HTTP report leaves

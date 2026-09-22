@@ -19,6 +19,7 @@ from openjev.runtime import stop_process, wait_ready
 from openjev.service import EvaluationService
 
 from nimble.scoring import parallel_schema
+from nimble.scoring.calibration import fitted_temperature
 from .compiler import NimbleCompiler
 
 MODEL = "bespokelabs/Bespoke-Nimble-9B"
@@ -35,7 +36,8 @@ def make_app(settings, service):
         "Nimble's trained candidate scoring on SGLang. Choice, Noul, and Score; "
         f"26 candidates, up to {MAX_PROMPT_TOKENS} prompt tokens (trained at {TRAINED_PROMPT_TOKENS}). "
         "Question IDs and option keys are included "
-        "in the trained prompt. Confidence is entropy concentration, not calibrated accuracy."
+        f"in the trained prompt. Probabilities use temperature {settings.temperature:.4g}. "
+        "Confidence is entropy concentration, not calibrated accuracy."
     )
     app.router.routes[:] = [r for r in app.router.routes if r.path not in {"/", "/v1/models", "/v1/limits"}]
     @app.get("/", include_in_schema=False)
@@ -85,10 +87,13 @@ async def main():
     contract = json.loads((path / "schema_config.json").read_text())
     if hashlib.sha256(Path(parallel_schema.__file__).read_bytes()).hexdigest() != contract["prompt_code_sha256"]:
         raise RuntimeError("Local prompt compiler differs from the published training contract")
+    # The temperature fitted for the prepared revision; raw probabilities if it has none.
+    revision = json.loads((path / "READY.json").read_text()).get("revision")
     settings = Settings(model=str(path), served_model_name=MODEL, model_alias="nimble-latest",
                         max_input_tokens=MAX_PROMPT_TOKENS + 1,
                         max_total_input_tokens=32 * (MAX_PROMPT_TOKENS + 1),
-                        max_concurrent_requests=4, max_concurrent_branches=32)
+                        max_concurrent_requests=4, max_concurrent_branches=32,
+                        temperature=fitted_temperature(MODEL, revision) or 1.0)
     command = ["/opt/sglang/bin/python", "-m", "sglang.launch_server",
                "--model-path", str(path), "--tokenizer-path", str(path),
                "--host", "127.0.0.1", "--port", "30000",

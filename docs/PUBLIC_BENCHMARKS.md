@@ -246,7 +246,7 @@ python -m nimble.evaluation.evaluate_public \
 | `--dtype`, `--attention` | Override BF16 and `sdpa`; `cuda` only. Recorded in the manifest |
 | `--resume` | Continue an interrupted run after checking its manifest |
 | `--shuffle-seed` | Permutes candidate order per record, to measure A-Z position bias |
-| `--temperature` | Defaults to 1.0. No temperature has been fitted |
+| `--temperature` | Defaults to 1.0, which gives the raw probabilities. Bespoke-Nimble-9B revision `93ec5d6` has a fitted temperature of 2.179078721266035 |
 | `--max-input-tokens` | Defaults to 2048, the model contract's limit |
 
 **No Jev annotation is required.** Every pre-existing runner in this repository demands a
@@ -447,8 +447,10 @@ p = 0.023. Jev loses 0.5 points, 11 against 9, p = 0.82.
 On probabilities, Jev has the lower expected calibration error on 11 of the 13 subsets,
 with Nimble lower on `massive-en-US` and `summeval-relevance`, and the lower Brier score
 on 10 of 13. On the two subsets that carry a human label distribution the two models are
-close. No temperature has been fitted for either model, so these describe each model as
-shipped.
+close. We ran Nimble at a temperature of 1.0 for this comparison. We fitted a
+temperature of 2.179 later, and we have not run these subsets with it. So these
+results describe the raw Nimble probabilities and Jev as shipped. See
+[Probability temperature](../README.md#probability-temperature).
 
 Exact-level accuracy on a five-level rubric is low for both models and they agree on only
 a quarter to a half of those records. Read the score MAE column instead, the absolute

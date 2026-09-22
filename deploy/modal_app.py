@@ -70,6 +70,7 @@ image = (
     .add_local_file(ROOT / "nimble/__init__.py", "/opt/app/nimble/__init__.py", copy=True)
     .add_local_file(ROOT / "nimble/compat.py", "/opt/app/nimble/compat.py", copy=True)
     .add_local_file(ROOT / "nimble/scoring/__init__.py", "/opt/app/nimble/scoring/__init__.py", copy=True)
+    .add_local_file(ROOT / "nimble/scoring/calibration.py", "/opt/app/nimble/scoring/calibration.py", copy=True)
     .add_local_file(ROOT / "nimble/scoring/parallel_schema.py", "/opt/app/nimble/scoring/parallel_schema.py", copy=True)
     .add_local_dir(ROOT / "nimble/serving", "/opt/app/nimble/serving", copy=True,
                    ignore=["**/__pycache__/**", "**/*.pyc"])

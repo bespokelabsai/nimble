@@ -64,10 +64,13 @@ separately, so one field cannot see the answer to another field.
   text taken from the context. An enum field can have 1 to 26 string choices,
   and a boolean field has two.
 - The probabilities are not a guarantee that an answer is correct. Nimble scales
-  them so that they add up to 1 across the answers you supplied. A probability
-  of 0.9 does not mean that the answer is right 90% of the time. If it is
-  possible that none of your answers fit, add an answer that means "no match".
-  Test any probability threshold on your own data before you rely on it.
+  them so that they add up to 1 across the answers you supplied. We fitted a
+  temperature so that the probabilities are closer to how often the answers are
+  right. See [Probability temperature](#probability-temperature). A probability
+  of 0.9 still does not mean that the answer is right 90% of the time on your
+  data. If it is possible that none of your answers fit, add an answer that
+  means "no match". Test any probability threshold on your own data before you
+  rely on it.
 - Each prompt can have at most 2,048 tokens. This limit includes the schema and
   the part of the prompt that names the field to score. Nimble rejects longer
   prompts. Fields cannot depend on each other, so your code must check that the
@@ -249,9 +252,12 @@ The output has this shape. The values depend on the model:
 {"priority": "HIGH", "requires_review": true}
 ```
 
-Load the scorer once and reuse it for each new context. Both scorers use a
-temperature of `1.0` by default. We have not tuned the temperature so that the
-probabilities match how often the answers are right. See the
+Load the scorer once and reuse it for each new context. For revision `93ec5d6`
+of Bespoke-Nimble-9B, both scorers use a temperature of 2.179 by default. We
+fitted this temperature so that the probabilities better match how often the
+answers are right. See [Probability temperature](#probability-temperature). For
+other models, the default temperature is `1.0`. You can pass `temperature` to
+either scorer to use a different value. See the
 [scoring guide](docs/PARALLEL_SCORING.md) for the schema rules and the ways you
 can run the scorer.
 
@@ -442,6 +448,65 @@ the prompt format that the model expects.
 For external, human-labeled tests on tasks outside these training categories, see
 the [public benchmarks guide](docs/PUBLIC_BENCHMARKS.md), which runs Bespoke-Nimble-9B
 and Jev on the same records from thirteen public subsets, starting with VitaminC.
+
+### Probability temperature
+
+The scorers turn the logits into probabilities with the softmax function. Before
+the softmax, they divide the logits by a number that is called the temperature.
+With a temperature above 1, the probabilities are less extreme. The order of the
+answers by probability is the same at any temperature. So the model picks the
+same answer at any temperature. The probabilities themselves do change, and so
+does an expected level that you calculate from them. If your code compares a
+probability or an expected level with a threshold, test the threshold again.
+
+We fitted one temperature for revision `93ec5d6` of Bespoke-Nimble-9B. We used
+two sets of 300 examples, and the two sets come from different sources. None of
+these examples are in the training data or in the 324 held-out examples above.
+On the first set, we picked the temperature with the lowest log loss. The log
+loss is the average negative log of the probability that the model gave to the
+correct answer. Then we checked the temperature on the second set. Before the
+check, we decided to keep the temperature only if the log loss on the second set
+went down and the Brier score did not go up. The fitted temperature is 2.179.
+The hosted API and both local scorers use it for this revision.
+
+At a temperature of 1, the probabilities were too high. On the second set, the
+average probability of the picked answer was 0.89, but only 73% of the picked
+answers were right. The table shows the results at both temperatures. Lower is
+better for each measure.
+
+| Examples | Measure | Temperature 1 | Temperature 2.179 |
+| --- | --- | ---: | ---: |
+| Second set (300) | Expected calibration error | 0.128 | 0.066 |
+| Second set (300) | Log loss | 0.692 | 0.555 |
+| Second set (300) | Brier score | 0.348 | 0.295 |
+| Held-out set (324) | Expected calibration error | 0.052 | 0.054 |
+| Held-out set (324) | Log loss | 0.318 | 0.259 |
+| Held-out set (324) | Brier score | 0.154 | 0.144 |
+
+For the expected calibration error, we sort the examples into ten groups by the
+probability of the picked answer. In each group, we compare the average
+probability with how often the picked answer is right. The expected calibration
+error is the average of these gaps, weighted by the size of each group. For the
+Brier score, the correct answer counts as 1 and each other answer counts as 0.
+The Brier score is the sum of the squared gaps between these numbers and the
+probabilities, averaged over the examples.
+
+In 24 of the 300 examples in the second set, the correct answer is a set of
+probabilities instead of one answer. For these examples, the log loss and the
+Brier score compare the model's probabilities with those reference
+probabilities. The expected calibration error leaves out these 24 examples. At
+both temperatures, the model picked the right answer on 220 of the 300 examples
+in the second set and on 292 of the 324 held-out examples.
+
+The results are not better for every kind of question. On the 64 rating
+questions in the 324 held-out examples, the probabilities of the picked answers
+became too low for how often those answers were right. The expected calibration
+error for these questions rose from 0.105 to 0.177.
+
+We fitted the temperature on the CUDA path that loads the adapter without
+merging it. The hosted API and the Mac and Linux quickstarts use merged weights.
+The logits from merged weights can be slightly different. We did not check the
+temperature again on the merged weights.
 
 ### Observed inference latency
 

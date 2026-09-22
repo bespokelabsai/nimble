@@ -10,6 +10,7 @@ import mlx.core as mx
 import numpy as np
 from mlx_lm.models.qwen3_5 import Model, ModelArgs
 
+from nimble.scoring.calibration import fitted_temperature
 from nimble.scoring.parallel_schema import REVISION, PreparedPrompts, parse_schema, prepare_prompts, validate_schema
 from nimble.scoring.parallel_scorer import ParallelScorer, broadcast_cache, candidate_projection
 
@@ -118,6 +119,16 @@ class ParallelTests(unittest.TestCase):
         self.assertEqual(result["output"], warmer["output"])
         for name in result["fields"]:
             self.assertLessEqual(max(warmer["fields"][name]["scores"].values()), max(result["fields"][name]["scores"].values()) + 1e-6)
+
+    def test_fitted_temperature_is_reported(self):
+        scorer = toy_scorer()
+        scorer.prepare = lambda *args: prompts()
+        self.assertFalse(scorer.score("context", {})["temperature_fitted"])
+        scorer.model_id, scorer.revision = "bespokelabs/Bespoke-Nimble-9B", "93ec5d6ff1a9cd31d6cc0e0c58d312465d36de7c"
+        scorer.temperature = fitted_temperature(scorer.model_id, scorer.revision)
+        result = scorer.score("context", {})
+        self.assertTrue(result["temperature_fitted"])
+        self.assertEqual((result["model"], result["revision"]), (scorer.model_id, scorer.revision))
 
     def test_metal_path_with_explicit_numerical_tolerance(self):
         mx.set_default_device(mx.gpu)

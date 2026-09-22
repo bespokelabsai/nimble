@@ -56,6 +56,10 @@ curl --fail-with-body --retry 60 --retry-delay 5 --retry-max-time 600 \
 
 The probabilities compare the supplied options. `confidence` summarizes how
 concentrated the distribution is; it is not a probability that the model is correct.
+The probabilities use a temperature that we fitted so that they better match how
+often the answers are right. If you compare `noul` or `score` with a threshold,
+test the threshold on your own data. See
+[Probability temperature](../README.md#probability-temperature).
 
 The complete context and schema must fit within 8,192 tokens per field. The model was
 trained on prompts of up to 2,048 tokens, so shorter prompts are the better-tested

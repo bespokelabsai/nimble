@@ -37,11 +37,14 @@ print(result["fields"]["risk_level"]["scores"])
 ```
 
 `--schema` accepts inline JSON. `--output` also saves results to a file.
-`--temperature` defaults to 1. In Python, `ParallelScorer` uses the fitted
-temperature for the `model_id` and `revision` that you pass when that checkpoint
-has one, and 1 otherwise. Revision
-`93ec5d6` of Bespoke-Nimble-9B is the only checkpoint with a fitted temperature,
-which is 2.179. See [Probability temperature](../README.md#probability-temperature).
+`--temperature` defaults to 1. In Python, `ParallelScorer` uses a fitted
+temperature only when the `model_id` and `revision` that you pass exactly match
+a checkpoint that has one. Otherwise it uses 1. The only such checkpoint is
+`model_id="bespokelabs/Bespoke-Nimble-9B"` with
+`revision="93ec5d6ff1a9cd31d6cc0e0c58d312465d36de7c"`, and its temperature is
+2.179. Pass the full 40-character revision hash. If you pass a short hash such
+as `93ec5d6`, the scorer uses a temperature of 1. The README quickstart saves
+the full hash for you. See [Probability temperature](../README.md#probability-temperature).
 `--max-input-tokens` defaults to 4096 and includes context, schema, and suffix.
 Overlength prompts are rejected without truncation.
 

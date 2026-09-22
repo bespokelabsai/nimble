@@ -95,7 +95,10 @@ Before it normalizes the candidate log probabilities, the server divides them by
 the temperature fitted for the served revision, which is 2.179. As a result, the
 probabilities are less extreme. The selected Choice is the same, but Noul
 probabilities and Score values change, so test any threshold on them again. A
-revision without a fitted temperature is served at temperature 1. See
+revision without a fitted temperature is served at temperature 1. The server
+finds the revision in the `READY.json` file of the merged model.
+`nimble/scoring/merge_local_adapter.py` does not record the revision, so for its
+merges the server uses the SHA-256 of the adapter weights instead. See
 [Probability temperature](../README.md#probability-temperature).
 
 ## Limits and operation

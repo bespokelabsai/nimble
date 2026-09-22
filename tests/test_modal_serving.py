@@ -18,7 +18,7 @@ from nimble.evaluation.evaluate_pilot import adapt_input
 from nimble.scoring.calibration import fitted_temperature
 from nimble.scoring.parallel_schema import prepare_prompts
 from nimble.serving.compiler import NimbleCompiler
-from nimble.serving.server import MAX_PROMPT_TOKENS, MODEL, make_app
+from nimble.serving.server import MAX_PROMPT_TOKENS, MODEL, make_app, served_temperature
 
 
 @pytest.fixture(scope="module")
@@ -126,3 +126,15 @@ def test_fitted_temperature_scales_served_probabilities(tokenizer, payload):
     true, false = 0.8 ** (1 / temperature), 0.2 ** (1 / temperature)
     assert response.json()["answers"]["refund"]["noul"] == pytest.approx(true / (true + false))
     assert "temperature 2.179" in app.description
+
+
+def test_served_temperature_reads_both_ready_layouts():
+    # Keys follow the READY.json writers in deploy/modal_app.py and merge_local_adapter.py.
+    revision, qwen = "93ec5d6ff1a9cd31d6cc0e0c58d312465d36de7c", "c202236235762e1c871ad0ccb60c8ee5ba337b9a"
+    adapter = "ba7e28acb97f973e80fa51f3aa6fc6f75ea4081b89632ed45d8e5f3a1d7bfa6b"
+    fitted = fitted_temperature(MODEL, revision)
+    assert served_temperature({"model": MODEL, "revision": revision, "base_revision": qwen}) == fitted
+    assert served_temperature({"base_revision": qwen, "adapter_sha256": adapter}) == fitted
+    # base_revision is the Qwen base, so an unknown adapter is served at temperature 1.
+    assert served_temperature({"base_revision": qwen, "adapter_sha256": "0" * 64}) == 1.0
+    assert served_temperature({"model": MODEL, "revision": "0" * 40}) == 1.0

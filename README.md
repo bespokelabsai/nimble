@@ -275,12 +275,15 @@ The output has this shape. The values depend on the model:
 {"priority": "HIGH", "requires_review": true}
 ```
 
-Load the scorer once and reuse it for each new context. For revision `93ec5d6`
-of Bespoke-Nimble-9B, both scorers use a temperature of 2.179 by default. We
-fitted this temperature so that the probabilities better match how often the
-answers are right. See [Probability temperature](#probability-temperature). For
-other models, the default temperature is `1.0`. You can pass `temperature` to
-either scorer to use a different value. See the
+Load the scorer once and reuse it for each new context. For revision
+`93ec5d6ff1a9cd31d6cc0e0c58d312465d36de7c` of Bespoke-Nimble-9B, both scorers
+use a temperature of 2.179 by default. The scorers need this full revision hash,
+and a short hash such as `93ec5d6` does not match. The download step above saves
+the full hash in `.cache/nimble-model.json`. We fitted this temperature so that
+the probabilities better match how often the answers are right. See
+[Probability temperature](#probability-temperature). For other models, the
+default temperature is `1.0`. You can pass `temperature` to either scorer to use
+a different value. See the
 [scoring guide](docs/PARALLEL_SCORING.md) for the schema rules and the ways you
 can run the scorer.
 

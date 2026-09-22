@@ -2,7 +2,7 @@
 
 import unittest
 
-from nimble.scoring.calibration import fitted_temperature
+from nimble.scoring.calibration import ADAPTER_REVISIONS, fitted_temperature
 
 NIMBLE = "bespokelabs/Bespoke-Nimble-9B"
 REVISION = "93ec5d6ff1a9cd31d6cc0e0c58d312465d36de7c"
@@ -13,6 +13,10 @@ class FittedTemperatureTests(unittest.TestCase):
         self.assertEqual(fitted_temperature(NIMBLE, REVISION), 2.179078721266035)
         self.assertIsNone(fitted_temperature(NIMBLE, "main"))
         self.assertIsNone(fitted_temperature("Qwen/Qwen3.5-9B", REVISION))
+
+    def test_every_adapter_hash_names_a_fitted_revision(self):
+        for revision in ADAPTER_REVISIONS.values():
+            self.assertIsNotNone(fitted_temperature(NIMBLE, revision))
 
 
 if __name__ == "__main__":

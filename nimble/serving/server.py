@@ -19,7 +19,7 @@ from openjev.runtime import stop_process, wait_ready
 from openjev.service import EvaluationService
 
 from nimble.scoring import parallel_schema
-from nimble.scoring.calibration import fitted_temperature
+from nimble.scoring.calibration import ADAPTER_REVISIONS, fitted_temperature
 from .compiler import NimbleCompiler
 
 MODEL = "bespokelabs/Bespoke-Nimble-9B"
@@ -27,6 +27,16 @@ MODEL = "bespokelabs/Bespoke-Nimble-9B"
 # Override the serving budget with NIMBLE_MAX_PROMPT_TOKENS.
 TRAINED_PROMPT_TOKENS = 2048
 MAX_PROMPT_TOKENS = int(os.environ.get("NIMBLE_MAX_PROMPT_TOKENS", "8192"))
+
+
+def served_temperature(ready):
+    """Return the fitted temperature for the checkpoint that READY.json describes, else 1.0.
+
+    deploy/modal_app.py records the Hub revision. merge_local_adapter.py records only the
+    adapter's SHA-256. In both files, base_revision is the Qwen base and never selects one.
+    """
+    revision = ready.get("revision") or ADAPTER_REVISIONS.get(ready.get("adapter_sha256"))
+    return fitted_temperature(MODEL, revision) or 1.0
 
 
 def make_app(settings, service):
@@ -87,13 +97,11 @@ async def main():
     contract = json.loads((path / "schema_config.json").read_text())
     if hashlib.sha256(Path(parallel_schema.__file__).read_bytes()).hexdigest() != contract["prompt_code_sha256"]:
         raise RuntimeError("Local prompt compiler differs from the published training contract")
-    # The temperature fitted for the prepared revision; raw probabilities if it has none.
-    revision = json.loads((path / "READY.json").read_text()).get("revision")
     settings = Settings(model=str(path), served_model_name=MODEL, model_alias="nimble-latest",
                         max_input_tokens=MAX_PROMPT_TOKENS + 1,
                         max_total_input_tokens=32 * (MAX_PROMPT_TOKENS + 1),
                         max_concurrent_requests=4, max_concurrent_branches=32,
-                        temperature=fitted_temperature(MODEL, revision) or 1.0)
+                        temperature=served_temperature(json.loads((path / "READY.json").read_text())))
     command = ["/opt/sglang/bin/python", "-m", "sglang.launch_server",
                "--model-path", str(path), "--tokenizer-path", str(path),
                "--host", "127.0.0.1", "--port", "30000",

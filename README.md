@@ -100,7 +100,7 @@ separately, so one field cannot see the answer to another field.
   answers to different fields are consistent.
 
 We trained Bespoke-Nimble-9B on 2,676 examples that we curated. So it's performance will depend on this data and the domains it comes from. So don't expect a lot of generalization.
-But we do see that Nibmle is overall better than it's base model Qwen3.5-9B in new domains.
+But we do see that Nimble is overall better than its base model Qwen3.5-9B in new domains.
 
 
 ## Quickstart

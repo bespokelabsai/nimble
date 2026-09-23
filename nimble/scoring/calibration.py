@@ -61,5 +61,9 @@ def served_temperature(ready):
     adapter's SHA-256. In both files, base_revision is the Qwen base and never selects one.
     """
     revision = ready.get("revision") or ADAPTER_REVISIONS.get(ready.get("adapter_sha256"))
-    return resolve_temperature(ready.get("model", "bespokelabs/Bespoke-Nimble-9B"), revision,
+    model_id = ready.get("model", "bespokelabs/Bespoke-Nimble-9B")
+    # Preserve v1 serving behavior for READY files written before its rename.
+    if revision in ADAPTER_REVISIONS.values():
+        model_id = "bespokelabs/Bespoke-Nimble-9B"
+    return resolve_temperature(model_id, revision,
                                adapter_sha256=ready.get("adapter_sha256"))

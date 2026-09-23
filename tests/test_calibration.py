@@ -55,6 +55,7 @@ class V2DefaultTests(unittest.TestCase):
         self.assertEqual(served_temperature({"model": V2_MODEL, "revision": "main"}), V2_TEMPERATURE)
         self.assertEqual(served_temperature({"adapter_sha256": V2_ADAPTER_SHA256}), V2_TEMPERATURE)
         self.assertEqual(served_temperature({"model": NIMBLE, "revision": REVISION}), 2.179078721266035)
+        self.assertEqual(served_temperature({"model": "legacy-nimble-alias", "revision": REVISION}), 2.179078721266035)
         self.assertEqual(served_temperature({"adapter_sha256": next(iter(ADAPTER_REVISIONS))}), 2.179078721266035)
         self.assertEqual(served_temperature({"base_revision": V2_ADAPTER_SHA256}), 1.0)
 

@@ -138,3 +138,9 @@ def test_served_temperature_reads_both_ready_layouts():
     # base_revision is the Qwen base, so an unknown adapter is served at temperature 1.
     assert served_temperature({"base_revision": qwen, "adapter_sha256": "0" * 64}) == 1.0
     assert served_temperature({"model": MODEL, "revision": "0" * 40}) == 1.0
+
+
+def test_served_v2_temperature_from_revision_or_adapter_hash():
+    from nimble.scoring.calibration import V2_MODEL, V2_ADAPTER_SHA256, V2_TEMPERATURE
+    assert served_temperature({"model": V2_MODEL, "revision": "main"}) == V2_TEMPERATURE
+    assert served_temperature({"adapter_sha256": V2_ADAPTER_SHA256}) == V2_TEMPERATURE

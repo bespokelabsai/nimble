@@ -170,5 +170,26 @@ class TokenizerTests(unittest.TestCase):
             prepare_prompts(self.tokenizer, "context", self.schema, 5)
 
 
+class V2MlxLoadingTests(unittest.TestCase):
+    def test_constructor_resolves_default_and_requires_raw_opt_in(self):
+        import tempfile
+        from unittest.mock import patch
+        from nimble.scoring.calibration import V2_MODEL, V2_TEMPERATURE
+        language = SimpleNamespace(model=object(), lm_head=SimpleNamespace(weight=mx.array([[1.0]])),
+                                   args=SimpleNamespace(max_position_embeddings=8193))
+        model = SimpleNamespace(model_type="qwen3_5", language_model=language, eval=lambda:None)
+        with tempfile.TemporaryDirectory() as path, \
+             patch("nimble.scoring.parallel_scorer.load", return_value=(model, object())), \
+             patch.object(mx.metal, "is_available", return_value=True), \
+             patch.object(mx, "set_default_device"):
+            scorer = ParallelScorer(path, model_id=V2_MODEL, revision="main")
+            self.assertEqual(scorer.temperature, V2_TEMPERATURE)
+            with self.assertRaisesRegex(ValueError, "allow_uncalibrated"):
+                ParallelScorer(path, model_id=V2_MODEL, revision="main", temperature=1.0)
+            raw = ParallelScorer(path, model_id=V2_MODEL, revision="main", temperature=1.0,
+                                  allow_uncalibrated=True)
+            self.assertEqual(raw.temperature, 1.0)
+
+
 if __name__ == "__main__":
     unittest.main()

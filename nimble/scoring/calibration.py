@@ -18,3 +18,48 @@ ADAPTER_REVISIONS = {
 def fitted_temperature(model_id, revision):
     """Return the fitted temperature for this exact checkpoint, or None if it has none."""
     return FITTED_TEMPERATURES.get((model_id, revision))
+
+
+V2_MODEL = "bespokelabs/Bespoke-Nimble-9B-v2"
+V2_ADAPTER_SHA256 = "1bd126be997be6d9a0c25ce483ccf858c31b3422d480c33f02ba47b614be68ae"
+V2_TEMPERATURE = 2.179078721266035
+
+
+def resolve_temperature(model_id, revision, temperature=None, *, model_path=None,
+                        adapter_sha256=None, allow_uncalibrated=False):
+    """Resolve the release default; require opt-in to bypass v2's temperature.
+
+    v2 transfers v1's temperature; it is not in FITTED_TEMPERATURES. Match the
+    v2 release ID across documentation revisions, or its adapter hash recorded
+    by merge_local_adapter. Never confuse base_revision with adapter identity.
+    """
+    import json
+    import math
+    from pathlib import Path
+
+    if model_path is not None:
+        ready = Path(model_path) / "READY.json"
+        if ready.is_file():
+            saved = json.loads(ready.read_text())
+            adapter_sha256 = saved.get("adapter_sha256", adapter_sha256)
+    is_v2 = model_id == V2_MODEL or adapter_sha256 == V2_ADAPTER_SHA256
+    default = V2_TEMPERATURE if is_v2 else (fitted_temperature(model_id, revision) or 1.0)
+    value = default if temperature is None else temperature
+    if (isinstance(value, bool) or not isinstance(value, (int, float))
+            or not math.isfinite(value) or value <= 0):
+        raise ValueError("temperature must be a positive finite number")
+    if is_v2 and value == 1.0 and not allow_uncalibrated:
+        raise ValueError("Bespoke-Nimble-9B-v2 defaults to T=2.179078721266035. "
+                         "Raw T=1.0 requires allow_uncalibrated=True.")
+    return float(value)
+
+
+def served_temperature(ready):
+    """Return the release temperature for the checkpoint described by READY.json.
+
+    deploy/modal_app.py records the Hub revision. merge_local_adapter.py records only the
+    adapter's SHA-256. In both files, base_revision is the Qwen base and never selects one.
+    """
+    revision = ready.get("revision") or ADAPTER_REVISIONS.get(ready.get("adapter_sha256"))
+    return resolve_temperature(ready.get("model", "bespokelabs/Bespoke-Nimble-9B"), revision,
+                               adapter_sha256=ready.get("adapter_sha256"))

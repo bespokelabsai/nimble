@@ -173,3 +173,22 @@ python3 -m venv .venv-mlx
 
 Use a normal native macOS terminal with Metal GPU access. The scorer uses only
 the local checkpoint and does not run a hosted inference request.
+
+
+### V2 probability default
+
+`bespokelabs/Bespoke-Nimble-9B-v2` uses `T=2.179078721266035` automatically in
+both Python scorers. The model ID or the adapter SHA-256 in a local merge's
+`READY.json` selects this policy, even after model-card revisions. This temperature
+is transferred from v1; v2 is not reported as independently temperature-fitted.
+Use the normal model ID/revision arguments from the README, or retain `READY.json`
+when moving a merged model. The MLX CLI now leaves temperature unspecified so it
+can use the checkpoint default instead of injecting 1.0.
+
+An intentional raw-probability comparison requires `temperature=1.0,
+allow_uncalibrated=True` (CLI: `--temperature 1 --allow-uncalibrated`). Otherwise,
+an explicit v2 temperature of 1.0 raises an error. Scaling is applied once to
+candidate logits, before softmax; raw logits and argmax predictions do not change.
+These defaults are implemented in the scorers, not encoded in the model weights.
+A third-party runtime must perform the same scaling; `generation_config.json`
+does not control probabilities from a direct model forward pass.

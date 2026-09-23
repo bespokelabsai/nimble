@@ -19,7 +19,7 @@ from openjev.runtime import stop_process, wait_ready
 from openjev.service import EvaluationService
 
 from nimble.scoring import parallel_schema
-from nimble.scoring.calibration import ADAPTER_REVISIONS, fitted_temperature
+from nimble.scoring.calibration import served_temperature
 from .compiler import NimbleCompiler
 
 MODEL = "bespokelabs/Bespoke-Nimble-9B"
@@ -27,16 +27,6 @@ MODEL = "bespokelabs/Bespoke-Nimble-9B"
 # Override the serving budget with NIMBLE_MAX_PROMPT_TOKENS.
 TRAINED_PROMPT_TOKENS = 2048
 MAX_PROMPT_TOKENS = int(os.environ.get("NIMBLE_MAX_PROMPT_TOKENS", "8192"))
-
-
-def served_temperature(ready):
-    """Return the fitted temperature for the checkpoint that READY.json describes, else 1.0.
-
-    deploy/modal_app.py records the Hub revision. merge_local_adapter.py records only the
-    adapter's SHA-256. In both files, base_revision is the Qwen base and never selects one.
-    """
-    revision = ready.get("revision") or ADAPTER_REVISIONS.get(ready.get("adapter_sha256"))
-    return fitted_temperature(MODEL, revision) or 1.0
 
 
 def make_app(settings, service):

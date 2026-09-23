@@ -14,7 +14,7 @@ from collections import Counter
 
 import torch
 
-from nimble.scoring.calibration import fitted_temperature
+from nimble.scoring.calibration import fitted_temperature, resolve_temperature
 from nimble.scoring.parallel_schema import choice_key, prepare_prompts
 
 DTYPES = {"bfloat16": torch.bfloat16, "float16": torch.float16, "float32": torch.float32}
@@ -53,7 +53,8 @@ def candidate_projection(hidden, weight, token_ids):
 
 class CudaCandidateScorer:
     def __init__(self, model_path, model_id, revision, max_input_tokens=4096, temperature=None,
-                 device_map=None, max_gpu_memory=None, dtype="bfloat16", attention=None):
+                 device_map=None, max_gpu_memory=None, dtype="bfloat16", attention=None,
+                 allow_uncalibrated=False):
         if not torch.cuda.is_available():
             raise RuntimeError("This runner requires a CUDA or ROCm GPU")
         if dtype not in DTYPES:
@@ -63,9 +64,9 @@ class CudaCandidateScorer:
             raise RuntimeError("This GPU reports no BF16 support; pass dtype=float16 to override")
         if not isinstance(max_input_tokens, int) or max_input_tokens < 1:
             raise ValueError("max_input_tokens must be a positive integer")
-        if temperature is None:
-            # The checkpoint's fitted temperature when it has one, else raw probabilities.
-            temperature = fitted_temperature(model_id, revision) or 1.0
+        temperature = resolve_temperature(model_id, revision, temperature,
+                                          model_path=model_path,
+                                          allow_uncalibrated=allow_uncalibrated)
         if not math.isfinite(temperature) or temperature <= 0:
             raise ValueError("temperature must be positive and finite")
         if attention not in (None, "sdpa", "eager"):

@@ -147,7 +147,7 @@ from pathlib import Path
 
 from huggingface_hub import snapshot_download
 
-repo = "bespokelabs/Bespoke-Nimble-9B"
+repo = "bespokelabs/Bespoke-Nimble-9B"  # Or "bespokelabs/Bespoke-Nimble-9B-v2"
 snapshot = Path(snapshot_download(repo, cache_dir=".cache/huggingface/hub"))
 contract_file = snapshot / "schema_config.json"
 contract = json.loads(contract_file.read_text()) if contract_file.exists() else {}
@@ -175,6 +175,13 @@ if (snapshot / "adapter_config.json").exists():
     model_path = Path(".cache/models") / ("nimble-9b-" + snapshot.name)
     merged.save_pretrained(model_path)
     AutoTokenizer.from_pretrained(snapshot).save_pretrained(model_path)
+    # Preserve adapter identity for automatic temperature selection after merging.
+    (model_path / "READY.json").write_text(json.dumps({
+        "model": repo, "revision": snapshot.name,
+        "adapter_sha256": hashlib.sha256(
+            (snapshot / "adapter_model.safetensors").read_bytes()
+        ).hexdigest(),
+    }, indent=2))
 
 config = {
     "model_path": str(model_path.resolve()),
@@ -282,8 +289,14 @@ and a short hash such as `93ec5d6` does not match. The download step above saves
 the full hash in `.cache/nimble-model.json`. We fitted this temperature so that
 the probabilities better match how often the answers are right. See
 [Probability temperature](#probability-temperature). For other models, the
-default temperature is `1.0`. You can pass `temperature` to either scorer to use
-a different value. See the
+default temperature is `1.0`, except for
+[`Bespoke-Nimble-9B-v2`](https://huggingface.co/bespokelabs/Bespoke-Nimble-9B-v2):
+v2 automatically uses **2.179078721266035** in both scorers, including local merges
+whose `READY.json` identifies its adapter. This is a transferred release default,
+not a temperature fitted independently for v2. Documentation-only Hub revisions
+retain this default. Deliberately using raw v2 probabilities requires both
+`temperature=1.0` and `allow_uncalibrated=True`; passing only `temperature=1.0`
+raises an error. Other positive temperatures remain explicit overrides. See the
 [scoring guide](docs/PARALLEL_SCORING.md) for the schema rules and the ways you
 can run the scorer.
 

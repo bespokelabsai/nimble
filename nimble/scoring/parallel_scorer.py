@@ -12,7 +12,7 @@ import mlx.core as mx
 from mlx_lm import load
 from mlx_lm.models.cache import ArraysCache, KVCache
 
-from nimble.scoring.calibration import fitted_temperature
+from nimble.scoring.calibration import fitted_temperature, resolve_temperature
 from nimble.scoring.parallel_schema import MODEL_ID, REVISION, choice_key, parse_schema, prepare_prompts
 
 
@@ -49,12 +49,12 @@ def candidate_projection(hidden, weight, token_ids):
 
 class ParallelScorer:
     def __init__(self, model_path=None, max_input_tokens=4096, temperature=None,
-                 model_id=MODEL_ID, revision=REVISION):
+                 model_id=MODEL_ID, revision=REVISION, allow_uncalibrated=False):
         if not isinstance(max_input_tokens, int) or max_input_tokens < 1:
             raise ValueError("max_input_tokens must be a positive integer.")
-        if temperature is None:
-            # The checkpoint's fitted temperature when it has one, else raw probabilities.
-            temperature = fitted_temperature(model_id, revision) or 1.0
+        temperature = resolve_temperature(model_id, revision, temperature,
+                                          model_path=model_path,
+                                          allow_uncalibrated=allow_uncalibrated)
         if not math.isfinite(temperature) or temperature <= 0:
             raise ValueError("temperature must be positive and finite.")
         if not mx.metal.is_available():
@@ -196,7 +196,8 @@ def main():
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument("--schema")
     group.add_argument("--schema-file", type=Path)
-    parser.add_argument("--temperature", type=float, default=1.0)
+    parser.add_argument("--temperature", type=float, default=None)
+    parser.add_argument("--allow-uncalibrated", action="store_true")
     parser.add_argument("--max-input-tokens", type=int, default=4096)
     parser.add_argument("--field-batch-size", type=int)
     parser.add_argument("--mode", choices=["parallel", "cached_serial", "independent"], default="parallel")
@@ -206,7 +207,8 @@ def main():
         schema = parse_schema(args.schema if args.schema is not None else args.schema_file.read_text())
         if not args.context.strip():
             raise ValueError("Context must be nonempty.")
-        scorer = ParallelScorer(max_input_tokens=args.max_input_tokens, temperature=args.temperature)
+        scorer = ParallelScorer(max_input_tokens=args.max_input_tokens, temperature=args.temperature,
+                                allow_uncalibrated=args.allow_uncalibrated)
         result = scorer.score(args.context, schema, args.mode, args.field_batch_size)
         import json
         text = json.dumps(result, indent=2, ensure_ascii=False, allow_nan=False)

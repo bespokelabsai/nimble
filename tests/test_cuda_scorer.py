@@ -91,5 +91,32 @@ class OffloadedHeadTests(unittest.TestCase):
             physical_weight(torch.nn.Linear(4, 6, bias=False, device="meta"))
 
 
+class V2CudaLoadingTests(unittest.TestCase):
+    def test_constructor_resolves_default_and_requires_raw_opt_in(self):
+        from unittest.mock import patch
+        from transformers import AutoConfig, AutoTokenizer, Qwen3_5ForConditionalGeneration
+        from nimble.scoring.cuda_scorer import CudaCandidateScorer
+        from nimble.scoring.calibration import V2_MODEL, V2_TEMPERATURE
+        embed = torch.nn.Embedding(8, 4)
+        model = SimpleNamespace(model=object(), get_output_embeddings=lambda:embed,
+                                get_input_embeddings=lambda:embed)
+        model.eval = lambda:model
+        model.to = lambda _:model
+        config = SimpleNamespace(model_type="qwen3_5", max_position_embeddings=8193)
+        with patch.object(torch.cuda, "is_available", return_value=True), \
+             patch.object(torch.cuda, "is_bf16_supported", return_value=True), \
+             patch.object(torch.cuda, "device_count", return_value=0), \
+             patch.object(AutoConfig, "from_pretrained", return_value=config), \
+             patch.object(AutoTokenizer, "from_pretrained", return_value=object()), \
+             patch.object(Qwen3_5ForConditionalGeneration, "from_pretrained", return_value=(model, {})):
+            scorer = CudaCandidateScorer("unused", V2_MODEL, "main")
+            self.assertEqual(scorer.temperature, V2_TEMPERATURE)
+            with self.assertRaisesRegex(ValueError, "allow_uncalibrated"):
+                CudaCandidateScorer("unused", V2_MODEL, "main", temperature=1.0)
+            raw = CudaCandidateScorer("unused", V2_MODEL, "main", temperature=1.0,
+                                      allow_uncalibrated=True)
+            self.assertEqual(raw.temperature, 1.0)
+
+
 if __name__ == "__main__":
     unittest.main()

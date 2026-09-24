@@ -45,6 +45,9 @@ def main():
     from transformers import AutoTokenizer, Qwen3_5ForConditionalGeneration
     torch.set_num_threads(8)
     started = time.perf_counter()
+    from nimble.training.candidate_schema import validate_contract
+    tokenizer = AutoTokenizer.from_pretrained(args.adapter, local_files_only=True)
+    validate_contract(contract, tokenizer)
     print('Loading cached base on CPU', flush=True)
     base = Qwen3_5ForConditionalGeneration.from_pretrained(base_path, local_files_only=True,
                 dtype=torch.bfloat16, device_map='cpu', attn_implementation='sdpa', trust_remote_code=False)
@@ -52,7 +55,7 @@ def main():
     merged = PeftModel.from_pretrained(base, args.adapter, local_files_only=True).merge_and_unload(safe_merge=True)
     print('Saving merged checkpoint', flush=True)
     merged.save_pretrained(args.output, safe_serialization=True, max_shard_size='4GB')
-    AutoTokenizer.from_pretrained(args.adapter, local_files_only=True).save_pretrained(args.output)
+    tokenizer.save_pretrained(args.output)
     shutil.copyfile(args.adapter/'schema_config.json', args.output/'schema_config.json')
     hashes = {}
     for path in sorted(args.output.glob('*.safetensors')):

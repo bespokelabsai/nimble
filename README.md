@@ -24,6 +24,8 @@ on a Mac with Apple Silicon or on a machine with an NVIDIA GPU.
 
 ## Updates
 
+- September 24, 2026: [Bespoke-Nimble-9B](https://huggingface.co/bespokelabs/Bespoke-Nimble-9B) now contains the latest checkpoint, with an 8,192-token context and up to 255 choices per field. Its default is T=1.0; the original release is preserved under the `original-2676` tag, and the separate v2 repository is unchanged. Update this checkout before loading the new release.
+
 - On September 22, 2026, we fitted a temperature for Bespoke-Nimble-9B. With
   this temperature, the probabilities better match how often the answers are
   right. The model picks the same answers as before. Noul probabilities and
@@ -84,22 +86,21 @@ separately, so one field cannot see the answer to another field.
   e.g., images. This is true even though the base model includes a vision part.
 - Nimble only picks from the answers you supply. It cannot write text of its
   own, e.g., an explanation. It also cannot return nested JSON or a piece of
-  text taken from the context. An enum field can have 1 to 26 string choices,
+  text taken from the context. An enum field can have 1 to 255 string choices in the latest release,
   and a boolean field has two.
 - The probabilities are not a guarantee that an answer is correct. Nimble scales
-  them so that they add up to 1 across the answers you supplied. We fitted a
-  temperature so that the probabilities are closer to how often the answers are
-  right. See [Probability temperature](#probability-temperature). A probability
+  them so that they add up to 1 across the answers you supplied. The latest checkpoint uses T=1.0 and has not had a separate temperature fit.
+  Earlier releases have their own temperature settings. See [Probability temperature](#probability-temperature). A probability
   of 0.9 still does not mean that the answer is right 90% of the time on your
   data. If it is possible that none of your answers fit, add an answer that
   means "no match". Test any probability threshold on your own data before you
   rely on it.
-- Each prompt can have at most 2,048 tokens. This limit includes the schema and
+- Each prompt can have at most 8,192 tokens in the latest release. This limit includes the schema and
   the part of the prompt that names the field to score. Nimble rejects longer
   prompts. Fields cannot depend on each other, so your code must check that the
   answers to different fields are consistent.
 
-We trained Bespoke-Nimble-9B on 2,676 examples that we curated. So it's performance will depend on this data and the domains it comes from. So don't expect a lot of generalization.
+Nimble’s performance depends on the curated data and domains represented in its training; test it on your own tasks.
 But we do see that Nimble is overall better than its base model Qwen3.5-9B in new domains.
 
 
@@ -152,12 +153,9 @@ snapshot = Path(snapshot_download(repo, cache_dir=".cache/huggingface/hub"))
 contract_file = snapshot / "schema_config.json"
 contract = json.loads(contract_file.read_text()) if contract_file.exists() else {}
 if contract:
-    prompt_hash = hashlib.sha256(
-        Path("nimble/scoring/parallel_schema.py").read_bytes()
-    ).hexdigest()
-    if (contract["task"] != "schema_candidate_classification_v1"
-            or contract["prompt_code_sha256"] != prompt_hash):
-        raise ValueError("Model contract differs from this checkout's scoring prompt")
+    from transformers import AutoTokenizer
+    from nimble.training.candidate_schema import validate_contract
+    validate_contract(contract, AutoTokenizer.from_pretrained(snapshot))
 
 model_path = snapshot
 if (snapshot / "adapter_config.json").exists():
@@ -174,6 +172,7 @@ if (snapshot / "adapter_config.json").exists():
     merged = adapter.merge_and_unload(safe_merge=True)
     model_path = Path(".cache/models") / ("nimble-9b-" + snapshot.name)
     merged.save_pretrained(model_path)
+    (model_path / "schema_config.json").write_text(json.dumps(contract, indent=2))
     AutoTokenizer.from_pretrained(snapshot).save_pretrained(model_path)
     # Preserve adapter identity for automatic temperature selection after merging.
     (model_path / "READY.json").write_text(json.dumps({
@@ -282,7 +281,8 @@ The output has this shape. The values depend on the model:
 {"priority": "HIGH", "requires_review": true}
 ```
 
-Load the scorer once and reuse it for each new context. For revision
+Load the scorer once and reuse it for each new context. The latest checkpoint
+uses T=1.0; the following fitted temperature applies only to the original release. For revision
 `93ec5d6ff1a9cd31d6cc0e0c58d312465d36de7c` of Bespoke-Nimble-9B, both scorers
 use a temperature of 2.179 by default. The scorers need this full revision hash,
 and a short hash such as `93ec5d6` does not match. The download step above saves
@@ -301,6 +301,8 @@ raises an error. Other positive temperatures remain explicit overrides. See the
 can run the scorer.
 
 ## Methodology
+
+This section documents the original release’s data and recipe. The latest checkpoint is identified in [Updates](#updates).
 
 The serving methodology and training data curation are heavily inspired by [Bespoke-MiniCheck](https://huggingface.co/bespokelabs/Bespoke-MiniCheck-7B).
 
@@ -374,7 +376,7 @@ There is one training set and one held-out set.
 
 | File | Examples | Use |
 | --- | ---: | --- |
-| [data/train.jsonl](data/train.jsonl) | 2,676 | Used to train the published model |
+| [data/train.jsonl](data/train.jsonl) | 2,676 | Original release training set |
 | [data/eval.jsonl](data/eval.jsonl) | 324 | Frozen final evaluation only |
 
 The published model's training data covers **10 subject categories**. The tables
@@ -498,7 +500,8 @@ same answer at any temperature. The probabilities themselves do change, and so
 does an expected level that you calculate from them. If your code compares a
 probability or an expected level with a threshold, test the threshold again.
 
-We fitted one temperature for revision `93ec5d6` of Bespoke-Nimble-9B. We used
+The latest checkpoint uses T=1.0 without a separate fit. The following results
+describe the original release. We fitted one temperature for revision `93ec5d6` of Bespoke-Nimble-9B. We used
 two sets of 300 examples, and the two sets come from different sources. None of
 these examples are in the training data or in the 324 held-out examples above.
 On the first set, we picked the temperature with the lowest log loss. The log

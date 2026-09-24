@@ -15,6 +15,8 @@ from collections import Counter
 import torch
 
 from nimble.scoring.calibration import fitted_temperature, resolve_temperature
+from nimble.scoring.release_contract import prompt_builder
+from nimble.scoring.serving_schema import codes_for
 from nimble.scoring.parallel_schema import choice_key, prepare_prompts
 
 DTYPES = {"bfloat16": torch.bfloat16, "float16": torch.float16, "float32": torch.float32}
@@ -105,6 +107,7 @@ class CudaCandidateScorer:
         self.head_weight = physical_weight(self.model.get_output_embeddings())
         self.device = execution_device(self.model.get_input_embeddings())
         self.tokenizer = AutoTokenizer.from_pretrained(model_path, local_files_only=True)
+        self.prepare_prompts = prompt_builder(model_path, self.tokenizer)
         self.system_role = config.model_type != "gemma3_text"
         self.model_id, self.revision = model_id, revision
         text_config = getattr(config, "text_config", config)
@@ -121,7 +124,7 @@ class CudaCandidateScorer:
         }
 
     def prepare(self, context, schema):
-        return prepare_prompts(self.tokenizer, context, schema, self.max_input_tokens,
+        return getattr(self, "prepare_prompts", prepare_prompts)(self.tokenizer, context, schema, self.max_input_tokens,
                                system_role=self.system_role)
 
     @torch.inference_mode()
@@ -147,7 +150,7 @@ class CudaCandidateScorer:
             fields[name] = {
                 "value": choices[best], "scores": dict(zip(keys, probabilities.tolist())),
                 "logits": dict(zip(keys, logits.tolist())), "candidate_token_ids": candidates,
-                "code_to_choice": dict(zip("ABCDEFGHIJKLMNOPQRSTUVWXYZ", choices)),
+                "code_to_choice": dict(zip(codes_for(len(choices), self.tokenizer), choices)),
                 "prompt_token_count": len(ids),
                 "prompt_token_sha256": hashlib.sha256(json.dumps(ids).encode()).hexdigest(),
             }

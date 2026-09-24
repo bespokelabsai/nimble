@@ -20,6 +20,9 @@ def fitted_temperature(model_id, revision):
     return FITTED_TEMPERATURES.get((model_id, revision))
 
 
+LATEST_ADAPTER_SHA256 = "29ef39b072dee97287947455337879c1e916705c2f727287922a2d81f5e2f20a"
+
+
 V2_MODEL = "bespokelabs/Bespoke-Nimble-9B-v2"
 V2_ADAPTER_SHA256 = "1bd126be997be6d9a0c25ce483ccf858c31b3422d480c33f02ba47b614be68ae"
 V2_TEMPERATURE = 2.179078721266035
@@ -42,6 +45,11 @@ def resolve_temperature(model_id, revision, temperature=None, *, model_path=None
         if ready.is_file():
             saved = json.loads(ready.read_text())
             adapter_sha256 = saved.get("adapter_sha256", adapter_sha256)
+    # Weight identity takes precedence over an alias or stale caller revision.
+    if adapter_sha256 == LATEST_ADAPTER_SHA256:
+        model_id, revision = "bespokelabs/Bespoke-Nimble-9B", "latest-12026-unfitted"
+    elif adapter_sha256 in ADAPTER_REVISIONS:
+        model_id, revision = "bespokelabs/Bespoke-Nimble-9B", ADAPTER_REVISIONS[adapter_sha256]
     is_v2 = model_id == V2_MODEL or adapter_sha256 == V2_ADAPTER_SHA256
     default = V2_TEMPERATURE if is_v2 else (fitted_temperature(model_id, revision) or 1.0)
     value = default if temperature is None else temperature

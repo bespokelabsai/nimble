@@ -13,7 +13,9 @@ from mlx_lm import load
 from mlx_lm.models.cache import ArraysCache, KVCache
 
 from nimble.scoring.calibration import fitted_temperature, resolve_temperature
-from nimble.scoring.parallel_schema import MODEL_ID, REVISION, choice_key, parse_schema, prepare_prompts
+from nimble.scoring.release_contract import prompt_builder
+from nimble.scoring.serving_schema import codes_for, parse_schema
+from nimble.scoring.parallel_schema import MODEL_ID, REVISION, choice_key, prepare_prompts
 
 
 def broadcast_cache(prefix_cache, batch_size):
@@ -68,6 +70,7 @@ class ParallelScorer:
         self.model_id, self.revision = model_id, revision
         print(f"Loading {model_id} in MLX...", file=sys.stderr, flush=True)
         self.model, self.tokenizer = load(str(path))
+        self.prepare_prompts = prompt_builder(path, self.tokenizer)
         self.model.eval()
         language_model = getattr(self.model, "language_model", self.model)
         if self.model.model_type not in {"qwen3_5", "gemma3_text"}:
@@ -84,7 +87,7 @@ class ParallelScorer:
         self.temperature = temperature
 
     def prepare(self, context, schema):
-        return prepare_prompts(self.tokenizer, context, schema, self.max_input_tokens,
+        return getattr(self, "prepare_prompts", prepare_prompts)(self.tokenizer, context, schema, self.max_input_tokens,
                                system_role=getattr(self, "system_role", True))
 
     def evaluate(self, prepared, mode="parallel", field_batch_size=None):
@@ -181,7 +184,7 @@ class ParallelScorer:
                 "value": choices[best], "scores": dict(zip(keys, probs.tolist())),
                 "logits": dict(zip(keys, row.tolist())),
                 "candidate_token_ids": ids,
-                "code_to_choice": dict(zip("ABCDEFGHIJKLMNOPQRSTUVWXYZ", choices)),
+                "code_to_choice": dict(zip(codes_for(len(choices), self.tokenizer), choices)),
             }
         model_id, revision = getattr(self, "model_id", MODEL_ID), getattr(self, "revision", REVISION)
         return {"model": model_id, "revision": revision, "backend": "mlx",

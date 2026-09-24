@@ -96,7 +96,7 @@ def main():
     p.description=__doc__
     p.set_defaults(target=2, attempt_multiplier=32, output=PROJECT_ROOT/'data/curation_model_benchmark')
     p.add_argument('--models', nargs='+', default=['gpt-5.6-luna','claude-sonnet-5'])
-    p.add_argument('--claude-provider', choices=['anthropic','openrouter'], default='anthropic')
+    p.add_argument('--claude-provider', choices=['anthropic','openrouter','requesty'], default='anthropic')
     args=p.parse_args()
     if len(set(args.models)) != len(args.models):
         raise ValueError('Models must be unique')
@@ -114,7 +114,7 @@ def main():
         load_dotenv(PROJECT_ROOT/'.env',override=False)
         configure()
         for provider in {provider_for(m,args.claude_provider) for m in args.models}:
-            key={'openai':'OPENAI_API_KEY','anthropic':'ANTHROPIC_API_KEY','openrouter':'OPENROUTER_API_KEY'}[provider]
+            key={'openai':'OPENAI_API_KEY','anthropic':'ANTHROPIC_API_KEY','openrouter':'OPENROUTER_API_KEY','requesty':'REQUESTY_API_KEY'}[provider]
             if not os.environ.get(key):raise ValueError(key+' is required')
         args.output.mkdir(parents=True,exist_ok=True)
     results=[]

@@ -44,10 +44,10 @@ data or claim that model-generated labels are human ground truth.
 ### Luna and Claude Sonnet 5
 
 The benchmark runner supports `gpt-5.6-luna` through OpenAI and
-`claude-sonnet-5` through Anthropic, or explicitly through OpenRouter. It uses the same curation prompts and acceptance
+`claude-sonnet-5` through Anthropic, or explicitly through OpenRouter or Requesty. It uses the same curation prompts and acceptance
 checks, with each selected model serving as both generator and verifier. Native Claude
-uses JSON-schema outputs; the OpenRouter Bedrock route uses a strict result-tool
-schema with the same fields. Both use the requested reasoning effort.
+uses JSON-schema outputs; the OpenRouter and Requesty Bedrock routes use a strict result-tool
+schema with the same fields. All use the requested reasoning effort.
 OpenAI and Anthropic effort names do not imply equal reasoning compute.
 Dependencies are pinned in `requirements/curator.txt` (OpenAI 2.30.0 and
 Anthropic 0.84.0 in the tested environment).
@@ -67,17 +67,26 @@ Anthropic 0.84.0 in the tested environment).
   --models claude-sonnet-5 --claude-provider openrouter \
   --output data/curation_benchmark_sonnet_new
 
+# Explicit Requesty transport for Claude; exact Sonnet 5 model pinned to the
+# bedrock/claude-sonnet-5 route, no fallback policy.
+.venv-curator/bin/python -m nimble.datasets.benchmark_curation_models \
+  --models claude-sonnet-5 --claude-provider requesty \
+  --output data/curation_benchmark_sonnet_requesty
+
 # The same native-provider runner can create a larger release for either model.
 .venv-curator/bin/python -m nimble.datasets.benchmark_curation_models \
   --models claude-sonnet-5 --target 1000 --output data/contrastive_training_sonnet5
 ```
 
-Credentials are read from `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, or
-`OPENROUTER_API_KEY`, according to the explicitly selected transport, and sent
+Credentials are read from `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`,
+`OPENROUTER_API_KEY`, or `REQUESTY_API_KEY`, according to the explicitly selected transport, and sent
 only to that service's API endpoint. OpenRouter forwards the synthetic prompts
 to Amazon Bedrock; the requested model remains `anthropic/claude-sonnet-5`.
 The adapter requires the returned model and provider to match, exactly one result
 tool with the expected name, and a complete, non-refused response. No tool is executed.
+Requesty forwards the synthetic prompts to Amazon Bedrock through the
+`bedrock/claude-sonnet-5` model id. Requesty does not return a provider field, so
+its adapter checks the returned model and applies the same result-tool checks.
 Responses are
 validated against the same Pydantic schemas before the existing acceptance gates.
 Refusals and truncated responses cannot become training examples. Model/provider
@@ -248,5 +257,6 @@ Model reference: [GPT-5.6 Terra documentation](https://developers.openai.com/api
 Additional model/transport references: [GPT-5.6 Luna](https://developers.openai.com/api/docs/models/gpt-5.6-luna),
 [Claude Sonnet 5](https://platform.claude.com/docs/en/models/sonnet-5/whats-new-sonnet-5),
 [Claude thinking](https://platform.claude.com/docs/en/about-claude/models/extended-thinking-models),
-and [OpenRouter zero data retention](https://openrouter.ai/docs/guides/features/zdr).
+[OpenRouter zero data retention](https://openrouter.ai/docs/guides/features/zdr),
+and [Requesty](https://docs.requesty.ai).
 Method reference: [MiniCheck sections 3.1–3.2 and Appendix H.1](https://arxiv.org/html/2404.10774v2).

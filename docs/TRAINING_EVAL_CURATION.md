@@ -86,7 +86,8 @@ The adapter requires the returned model and provider to match, exactly one resul
 tool with the expected name, and a complete, non-refused response. No tool is executed.
 Requesty forwards the synthetic prompts to Amazon Bedrock through the
 `bedrock/claude-sonnet-5` model id. Requesty does not return a provider field, so
-its adapter checks the returned model and applies the same result-tool checks.
+its adapter checks the returned model (the bare id, the `bedrock/` id, or the native
+Bedrock `anthropic.<model>-...` id) and applies the same result-tool checks.
 Responses are
 validated against the same Pydantic schemas before the existing acceptance gates.
 Refusals and truncated responses cannot become training examples. Model/provider

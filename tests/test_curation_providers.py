@@ -141,9 +141,13 @@ class ProviderTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(normalized.choices[0].message.content, '{"valid":true}')
         self.assertEqual(normalized.usage.model_dump()['requesty_model'], 'bedrock/claude-sonnet-5')
         create.assert_awaited_once_with(**request)
-        result.model = 'different-model'
-        with self.assertRaisesRegex(RuntimeError,'unexpected model'):
-            await client.create(**original)
+        for returned in ['bedrock/claude-sonnet-5', 'anthropic.claude-sonnet-5-v1:0']:
+            result.model = returned
+            self.assertEqual((await client.create(**original)).model, returned)
+        for returned in ['different-model', 'anthropic/claude-sonnet-5', 'anthropic.claude-sonnet-50-v1:0', None]:
+            result.model = returned
+            with self.assertRaisesRegex(RuntimeError,'unexpected model'):
+                await client.create(**original)
         result.model = 'claude-sonnet-5'
         for reason, refusal, calls in [('length',None,[call]), ('tool_calls','refused',[call]),
                                        ('tool_calls',None,[]), ('tool_calls',None,[call,call])]:

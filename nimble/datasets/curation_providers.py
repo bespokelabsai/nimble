@@ -105,8 +105,15 @@ def requesty_request(spec):
     return request
 
 
+def requesty_model_matches(returned, model):
+    # Requesty echoes the bare id for some Bedrock models (claude-sonnet-5) and the
+    # native Bedrock id for others (anthropic.claude-haiku-4-5-20251001-v1:0).
+    return (returned in (model, 'bedrock/' + model)
+            or (returned or '').startswith('anthropic.' + model + '-'))
+
+
 def normalize_requesty(result, spec):
-    if result.model != spec['model']:
+    if not requesty_model_matches(result.model, spec['model']):
         raise RuntimeError('Requesty returned an unexpected model')
     choice = result.choices[0]
     calls = choice.message.tool_calls or []

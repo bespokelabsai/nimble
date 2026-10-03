@@ -3,10 +3,27 @@
 import unittest
 from types import SimpleNamespace
 
-from nimble.training.schema_data import as_scoring, validate_separation, resolve_checkpoint, prepare_data
+from nimble.training.schema_data import as_scoring, validate_separation, resolve_checkpoint, prepare_data, read_rows
 
 
 class SchemaDataTests(unittest.TestCase):
+    def test_read_rows_preserves_unicode_separators(self):
+        import json
+        import tempfile
+        from pathlib import Path
+
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "train.jsonl"
+            for separator in ("\u0085", "\u2028", "\u2029"):
+                with self.subTest(separator=repr(separator)):
+                    rows = [
+                        {"id": "one", "input": {"state": f"First{separator}Second"}},
+                        {"id": "two", "input": {"state": "Another record"}},
+                    ]
+                    contents = "\r\n\r\n".join(json.dumps(row, ensure_ascii=False) for row in rows)
+                    path.write_bytes((contents + "\r\n").encode("utf-8"))
+                    self.assertEqual(read_rows(path), rows)
+
     def test_explicit_model_revision_and_export_identity(self):
         import json
         import tempfile

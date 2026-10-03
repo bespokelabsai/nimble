@@ -15,7 +15,7 @@ def fingerprint(value):
 
 
 def read_rows(path):
-    rows = [json.loads(line) for line in Path(path).read_text().splitlines() if line.strip()]
+    rows = [json.loads(line) for line in Path(path).read_text(encoding="utf-8").split("\n") if line.strip()]
     if not rows or len({r["id"] for r in rows}) != len(rows):
         raise ValueError("Records must be nonempty with unique IDs")
     return rows

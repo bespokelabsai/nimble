@@ -4,12 +4,13 @@ import asyncio
 import enum
 import json
 import unittest
-from typing import Literal
+from typing import Annotated, Literal
 
 import httpx
-from pydantic import BaseModel, Field, ValidationError
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from nimble.typed import Judgments, LocalScorer, Scripted, SystemOneHTTP, ask, task
+from nimble.typed import (Criteria, Levels, LocalScorer, Scripted, SystemOneHTTP, evidence,
+                          from_answers, judge, questions, task)
 
 
 class Ticket(BaseModel):
@@ -22,20 +23,23 @@ class Team(str, enum.Enum):
     technical = "technical"
 
 
-class Triage(Judgments):
+class Triage(BaseModel):
+    model_config = ConfigDict(use_attribute_docstrings=True)
+
     refund: bool
     """Does the customer explicitly ask for their money back?"""
 
-    team: Team = ask("Which team should handle this ticket?",
-                     criteria={"billing": "Charges, invoices, refunds", "technical": "Bugs and outages"})
+    team: Annotated[Team, Criteria(billing="Charges, invoices, refunds", technical="Bugs and outages")] = Field(
+        description="Which team should handle this ticket?")
 
-    urgency: float = ask("How urgent is this ticket operationally?",
-                         levels=["Routine; nothing is broken", "Degraded", "Complete outage"])
+    urgency: Annotated[float, Levels("Routine; nothing is broken", "Degraded", "Complete outage")] = Field(
+        description="How urgent is this ticket operationally?")
 
     tone: Literal["calm", "angry"] = Field(description="What is the customer's tone?")
 
-    severity: Literal["low", "high"] = ask("How severe is the impact?",
-                                           levels=["Cosmetic or optional", "Customers are blocked"])
+    severity: Literal["low", "high"] = Field(
+        description="How severe is the impact?",
+        json_schema_extra={"levels": ["Cosmetic or optional", "Customers are blocked"]})
 
 
 ANSWERS = {
@@ -49,7 +53,7 @@ ANSWERS = {
 
 class QuestionCompilation(unittest.TestCase):
     def test_annotations_choose_primitives(self):
-        q = Triage.questions()
+        q = questions(Triage)
         self.assertEqual(q["refund"], {"type": "noul",
                                        "instructions": "Does the customer explicitly ask for their money back?"})
         self.assertEqual(q["team"]["type"], "choice")
@@ -60,46 +64,52 @@ class QuestionCompilation(unittest.TestCase):
         self.assertEqual(q["severity"]["type"], "score")
 
     def test_missing_instructions_fail_at_definition(self):
-        with self.assertRaisesRegex(TypeError, "instructions"):
-            class Bad(Judgments):
-                flag: bool
+        class Bad(BaseModel):
+            flag: bool
+        with self.assertRaisesRegex(TypeError, "description"):
+            questions(Bad)
+        with self.assertRaisesRegex(TypeError, "description"):
+            @task
+            def check(text: str) -> Bad: ...
 
     def test_unsupported_types_fail_at_definition(self):
-        with self.assertRaisesRegex(TypeError, "Score needs"):
-            class Bad(Judgments):
-                level: float = ask("How much?")
-        with self.assertRaisesRegex(TypeError, "unknown options"):
-            class Worse(Judgments):
-                pick: Literal["a", "b"] = ask("Which?", criteria={"c": "nope"})
-        with self.assertRaisesRegex(TypeError, "Optional"):
-            class Worst(Judgments):
-                pick: Literal["a", "b"] | None = ask("Which?")
+        class Bad(BaseModel):
+            level: float = Field(description="How much?")
+        class Worse(BaseModel):
+            pick: Annotated[Literal["a", "b"], Criteria(c="nope")] = Field(description="Which?")
+        class Worst(BaseModel):
+            pick: Literal["a", "b"] | None = Field(description="Which?")
+        for model, message in ((Bad, "Levels"), (Worse, "unknown options"), (Worst, "Optional")):
+            with self.assertRaisesRegex(TypeError, message):
+                questions(model)
 
 
 class Decoding(unittest.TestCase):
     def test_typed_values_and_evidence(self):
-        result = Triage.from_answers(ANSWERS)
+        result = from_answers(Triage, ANSWERS)
+        self.assertIs(type(result), Triage)
+        e = evidence(result)
         self.assertIs(result.refund, True)
         self.assertIs(result.team, Team.billing)
         self.assertAlmostEqual(result.urgency, 0.4)
         self.assertEqual(result.tone, "angry")
         self.assertEqual(result.severity, "high")
-        self.assertAlmostEqual(result.probability("refund"), 0.93)
-        self.assertAlmostEqual(result.probability("team", Team.technical), 0.1)
-        self.assertEqual(result.distribution("severity"), {"low": 0.2, "high": 0.8})
-        self.assertEqual(result.uncertain(0.8), ["urgency", "tone"])
-        self.assertLess(result.confidence("tone"), 0.01)
-        with self.assertRaises(ValidationError):
-            result.refund = False  # Judgments are frozen.
+        self.assertAlmostEqual(e.probability("refund"), 0.93)
+        self.assertAlmostEqual(e.probability("team", Team.technical), 0.1)
+        self.assertEqual(e.distribution("severity"), {"low": 0.2, "high": 0.8})
+        self.assertEqual(e.uncertain(0.8), ["urgency", "tone"])
+        self.assertLess(e.confidence("tone"), 0.01)
+        with self.assertRaises(KeyError):
+            evidence(Triage.model_validate(result.model_dump()))  # Not judged.
 
     def test_probabilities_renormalize_over_criteria(self):
         answers = {**ANSWERS, "team": {"type": "choice", "choice": "billing",
                                        "probabilities": {"billing": 0.49, "technical": 0.49}}}
-        self.assertAlmostEqual(Triage.from_answers(answers).probability("team", "billing"), 0.5)
+        self.assertAlmostEqual(evidence(from_answers(Triage, answers)).probability("team", "billing"), 0.5)
 
     def test_wrong_answer_type_is_rejected(self):
         with self.assertRaisesRegex(ValueError, "expected a noul"):
-            Triage.from_answers({**ANSWERS, "refund": ANSWERS["team"]})
+            from_answers(Triage, {**ANSWERS, "refund": ANSWERS["team"]})
 
 
 class Tasks(unittest.TestCase):
@@ -147,6 +157,19 @@ class Tasks(unittest.TestCase):
             @task
             def nope(text: str) -> dict: ...
 
+    def test_plain_model_with_validators(self):
+        class Routed(BaseModel):
+            team: Literal["billing", "technical"] = Field(description="Which team?")
+
+            @field_validator("team")
+            @classmethod
+            def upper(cls, value):
+                return value.upper()
+
+        result = judge(Routed, "x", backend=Scripted(lambda s, q: {"team": ANSWERS["tone"] | {
+            "choice": "billing", "probabilities": {"billing": 0.8, "technical": 0.2}}}))
+        self.assertEqual(result.team, "BILLING")  # Pydantic validation still runs on the answers.
+
 
 class Backends(unittest.TestCase):
     def test_http_payload_and_retry(self):
@@ -189,9 +212,9 @@ class Backends(unittest.TestCase):
                 }}
 
         scorer = FakeScorer()
-        result = Triage.judge({"text": "x"}, backend=LocalScorer(scorer))
+        result = judge(Triage, {"text": "x"}, backend=LocalScorer(scorer))
         self.assertEqual(scorer.context, '{"text": "x"}')
-        self.assertEqual(scorer.schema["refund"], {"description": Triage.questions()["refund"]["instructions"],
+        self.assertEqual(scorer.schema["refund"], {"description": questions(Triage)["refund"]["instructions"],
                                                    "type": "boolean", "choices": [False, True]})
         self.assertEqual(scorer.schema["urgency"]["choices"], ["0", "1", "2"])
         self.assertEqual(scorer.schema["urgency"]["choice_descriptions"]["2"], "Complete outage")

@@ -10,43 +10,60 @@ or retry anything. It turns field types into questions and turns the answer
 probabilities back into typed values. The distribution behind each value is
 kept, so your code can still use it.
 
-## Judgments: the type is the question
+## Judgments: an ordinary Pydantic model
+
+There is no base class to inherit from. Any `BaseModel` works: each field is one
+question, the field type is the answer type, and the field description is the
+instruction. `Annotated` metadata says what each answer means.
 
 ```python
-from typing import Literal
-from nimble.typed import Judgments, ask
+from typing import Annotated, Literal
+from pydantic import BaseModel, ConfigDict
+from nimble.typed import Criteria, Levels
 
-class Triage(Judgments):
+class Triage(BaseModel):
+    model_config = ConfigDict(use_attribute_docstrings=True)
+
     wants_refund: bool
     """Does the customer explicitly ask for their money back in `ticket.message`?"""
 
-    team: Literal["billing", "technical", "account"] = ask(
-        "Which team should handle `ticket.message`?",
-        criteria={"billing": "Charges, invoices, refunds", "technical": "Bugs, errors, outages",
-                  "account": "Login, profile, plan changes"})
+    team: Annotated[Literal["billing", "technical", "account"], Criteria(
+        billing="Charges, invoices, refunds",
+        technical="Bugs, errors, outages",
+        account="Login, profile, plan changes")]
+    """Which team should handle `ticket.message`?"""
 
-    urgency: float = ask("How operationally urgent is `ticket.message`?",
-                         levels=["Routine question", "Degraded with a workaround", "Fully blocked"])
+    urgency: Annotated[float, Levels("Routine question", "Degraded with a workaround", "Fully blocked")]
+    """How operationally urgent is `ticket.message`?"""
 ```
 
 | Annotation | Primitive | Value you get |
 | --- | --- | --- |
 | `bool` | Noul | `True` when P(yes) > 0.5 |
 | `Literal[...]` or `Enum` | Choice | The most probable option (Enum member for an Enum) |
-| `float` with `levels=` | Score | Expected level, from 0 to n-1 |
-| `int` with `levels=` | Score | Index of the most probable level |
-| `Literal[...]` with `levels=` | Score | The option at the most probable level (an ordered label) |
+| `Annotated[float, Levels(...)]` | Score | Expected level, from 0 to n-1 |
+| `Annotated[int, Levels(...)]` | Score | Index of the most probable level |
+| `Annotated[Literal[...], Levels(...)]` | Score | The option at the most probable level (an ordered label) |
 
-You can give the instructions in `ask("...")`, in `Field(description=...)`, or
-in an attribute docstring. A field with no instructions raises an error when
-the class is defined. So does an unsupported type such as `Optional`: add an
-explicit "none" choice instead.
+- The instruction comes from `Field(description=...)` or from an attribute
+  docstring when the model sets `use_attribute_docstrings=True`.
+- `Criteria(...)` describes the options of a Choice. On a `bool`, use
+  `Criteria(yes=..., no=...)`. Options without a description are sent as
+  their names.
+- If you'd rather keep the type plain, you can write
+  `Field(json_schema_extra={"criteria": {...}})` or `{"levels": [...]}`
+  instead of the `Annotated` metadata.
+- A model with an unsupported field fails when a task is defined, for
+  example a field with no description, an `Optional` field (add an explicit
+  "none" choice instead), or a number without `Levels`.
+- The answers go through `model_validate`, so the model's own validators
+  still run.
 
 ## Tasks: the arguments are the state
 
 ```python
 from pydantic import BaseModel
-from nimble.typed import task, configure, nimble
+from nimble.typed import configure, evidence, nimble, task
 
 class Ticket(BaseModel):
     customer: str
@@ -58,10 +75,12 @@ def triage(ticket: Ticket) -> Triage:
 
 configure(nimble())          # or jev(), or LocalScorer(scorer)
 t = triage(Ticket(customer="Ada", message="I was charged twice"))
+t                            # a plain Triage instance
 t.team                       # "billing", typed as the Literal
-t.probability("wants_refund")
-t.distribution("team")       # {"billing": 0.91, "technical": 0.06, "account": 0.03}
-t.uncertain(0.75)            # fields to escalate
+e = evidence(t)              # the probabilities behind it
+e.probability("wants_refund")
+e.distribution("team")       # {"billing": 0.91, "technical": 0.06, "account": 0.03}
+e.uncertain(0.75)            # fields to escalate
 ```
 
 - The arguments are sent as named JSON state, such as `{"ticket": {...}}`.
@@ -69,6 +88,8 @@ t.uncertain(0.75)            # fields to escalate
   `ticket.message`. A single `str` argument is sent as the raw text.
 - To control the state yourself, return it from the function body, for
   example `return {"policy": POLICY, "request": ticket}`.
+- Outside a task, `judge(Triage, state)` asks the same questions about any
+  state, and `questions(Triage)` shows the questions that will be sent.
 - `triage.request(...)` shows the exact payload without making a call.
   `triage.map(items, concurrency=8)` runs a batch, and `await triage.acall(...)`
   runs one call asynchronously.

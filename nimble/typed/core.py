@@ -1,4 +1,4 @@
-"""Pydantic models as judgments, Python functions as tasks."""
+"""Plain Pydantic models as judgments, typed Python functions as tasks."""
 
 import asyncio
 import functools
@@ -6,15 +6,17 @@ import inspect
 import os
 import threading
 import typing
+import weakref
 
 import httpx
-from pydantic import BaseModel, ConfigDict, PrivateAttr
+from pydantic import BaseModel
 from pydantic_core import to_jsonable_python
 
 from . import backends as _backends
-from .questions import compile_field, decode
+from .questions import decode, questions_for
 
 _default_backend = None
+Output = typing.TypeVar("Output", bound=BaseModel)
 
 
 def configure(backend):
@@ -55,85 +57,70 @@ def run_sync(coroutine):
     return box["value"]
 
 
-class Judgments(BaseModel):
-    """Subclass with typed fields; each field is one independent question.
+class Judgment:
+    """The distributions behind one judged model instance; see `evidence(result)`."""
 
-        class Triage(Judgments):
-            refund: bool
-            '''Does the customer explicitly ask for their money back?'''
+    def __init__(self, evidence, state):
+        self.fields = evidence
+        self.state = state
 
-            team: Literal["billing", "technical"] = ask(
-                "Which team should handle this ticket?",
-                criteria={"billing": "Charges, invoices, refunds", "technical": "Bugs and outages"})
-
-            urgency: float = ask("How urgent is this ticket operationally?",
-                                 levels=["Routine; nothing is broken", "Degraded", "Complete outage"])
-
-    The instance holds the typed answers; `.probability()`, `.confidence()` and
-    `.evidence()` expose the distribution behind each one.
-    """
-
-    model_config = ConfigDict(use_attribute_docstrings=True, frozen=True)
-    __questions__: typing.ClassVar[dict] = {}
-    _evidence: dict = PrivateAttr(default_factory=dict)
-    _state: object = PrivateAttr(default=None)
-
-    @classmethod
-    def __pydantic_init_subclass__(cls, **kwargs):
-        super().__pydantic_init_subclass__(**kwargs)
-        cls.__questions__ = {name: compile_field(name, info) for name, info in cls.model_fields.items()}
-
-    @classmethod
-    def questions(cls, only=None):
-        """The wire questions, ready for any `/v1/systemone` request."""
-        names = only or cls.__questions__
-        return {name: cls.__questions__[name].wire() for name in names}
-
-    @classmethod
-    def from_answers(cls, answers, state=None):
-        values, evidence = {}, {}
-        for name, question in cls.__questions__.items():
-            values[name], evidence[name] = decode(question, answers[name])
-        instance = cls(**values)
-        instance._evidence, instance._state = evidence, state
-        return instance
-
-    @classmethod
-    async def ajudge(cls, state, backend=None, client=None):
-        state = to_jsonable_python(state)
-        answers = await (backend or default_backend()).evaluate(state, cls.questions(), client=client)
-        return cls.from_answers(answers, state)
-
-    @classmethod
-    def judge(cls, state, backend=None):
-        """Ask every question about `state` (a string, dict, or Pydantic model) in one request."""
-        return run_sync(cls.ajudge(state, backend))
-
-    def evidence(self, field):
-        return self._evidence[field]
+    def __repr__(self):
+        return f"Judgment({ {name: round(e.top[1], 3) for name, e in self.fields.items()} })"
 
     def probability(self, field, value=True):
         """Probability of one allowed answer; for a bool field, the probability of True."""
-        return self._evidence[field].probability(value)
+        return self.fields[field].probability(value)
 
     def distribution(self, field):
-        e = self._evidence[field]
+        e = self.fields[field]
         return {e.values[k]: p for k, p in e.probabilities.items()}
 
     def confidence(self, field):
         """Distribution concentration in [0, 1]; not a calibrated accuracy."""
-        return self._evidence[field].confidence
+        return self.fields[field].confidence
 
     def uncertain(self, threshold=0.8):
         """Fields whose most probable answer is below `threshold`, for escalation."""
-        return [name for name, e in self._evidence.items() if e.top[1] < threshold]
-
-    @property
-    def state(self):
-        return self._state
+        return [name for name, e in self.fields.items() if e.top[1] < threshold]
 
 
-Output = typing.TypeVar("Output", bound=Judgments)
+# Plain models carry no extra attributes; distributions live beside them until the instance is freed.
+_judgments = {}
+
+
+def evidence(result: BaseModel) -> Judgment:
+    """The probabilities behind a model returned by `judge` or a task."""
+    try:
+        return _judgments[id(result)]
+    except KeyError:
+        raise KeyError("This instance was not produced by judge() or a task") from None
+
+
+def questions(model: type[BaseModel], only=None):
+    """The wire questions for a Pydantic model, ready for any `/v1/systemone` request."""
+    compiled = questions_for(model)
+    return {name: compiled[name].wire() for name in (only or compiled)}
+
+
+def from_answers(model: type[Output], answers, state=None) -> Output:
+    values, distributions = {}, {}
+    for name, question in questions_for(model).items():
+        values[name], distributions[name] = decode(question, answers[name])
+    result = model.model_validate(values)
+    _judgments[id(result)] = Judgment(distributions, state)
+    weakref.finalize(result, _judgments.pop, id(result), None)
+    return result
+
+
+async def ajudge(model: type[Output], state, backend=None, client=None) -> Output:
+    state = to_jsonable_python(state)
+    answers = await (backend or default_backend()).evaluate(state, questions(model), client=client)
+    return from_answers(model, answers, state)
+
+
+def judge(model: type[Output], state, backend=None) -> Output:
+    """Ask every field of `model` about `state` (a string, dict, or Pydantic model) in one request."""
+    return run_sync(ajudge(model, state, backend))
 
 
 class Task(typing.Generic[Output]):
@@ -171,10 +158,10 @@ class Task(typing.Generic[Output]):
         return to_jsonable_python(dict(bound.arguments))
 
     def request(self, *args, **kwargs):
-        return {"state": self.state(*args, **kwargs), "questions": self.output.questions()}
+        return {"state": self.state(*args, **kwargs), "questions": questions(self.output)}
 
     async def acall(self, *args, client=None, **kwargs) -> Output:
-        return await self.output.ajudge(self.state(*args, **kwargs), self.backend, client=client)
+        return await ajudge(self.output, self.state(*args, **kwargs), self.backend, client=client)
 
     def __call__(self, *args, **kwargs) -> Output:
         return run_sync(self.acall(*args, **kwargs))
@@ -211,7 +198,8 @@ def task(fn=None, *, backend=None):
     """
     def wrap(fn):
         output = typing.get_type_hints(fn).get("return")
-        if not (isinstance(output, type) and issubclass(output, Judgments)):
-            raise TypeError(f"{fn.__name__} must be annotated to return a Judgments subclass")
+        if not (isinstance(output, type) and issubclass(output, BaseModel)):
+            raise TypeError(f"{fn.__name__} must be annotated to return a Pydantic model")
+        questions_for(output)  # Fail at definition time, not on the first call.
         return Task(fn, output, backend)
     return wrap(fn) if fn is not None else wrap

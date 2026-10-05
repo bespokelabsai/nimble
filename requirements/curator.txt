@@ -1,4 +1,4 @@
 bespokelabs-curator==0.1.29
-python-dotenv==1.0.1
+python-dotenv==1.2.2
 openai==2.30.0
 anthropic==0.84.0

@@ -5,4 +5,4 @@ transformers==5.17.0
 accelerate==1.15.0
 sentencepiece==0.2.2
 pillow==12.3.0
-python-dotenv==1.2.3
+python-dotenv==1.2.2

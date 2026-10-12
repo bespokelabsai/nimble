@@ -651,7 +651,7 @@ the dataset release that you used.
 
 ```bibtex
 @misc{nimble2026,
-  author = {{Bespoke Labs} and Sathiamoorthy, Maheswaran},
+  author = {{Bespoke Labs} and Pimpalgaonkar, Shreyas and Dalal, Pratik and Sathiamoorthy, Maheswaran},
   title = {Nimble},
   year = {2026},
   howpublished = {\url{https://github.com/bespokelabsai/nimble}},

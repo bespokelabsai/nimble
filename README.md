@@ -2,11 +2,7 @@
 
 **Data, Model, Recipe for an open Jev**
 
-<a href="https://trendshift.io/repositories/247294?utm_source=trendshift-badge&amp;utm_medium=badge&amp;utm_campaign=badge-trendshift-247294" target="_blank" rel="noopener noreferrer"><img src="https://trendshift.io/api/badge/trendshift/repositories/247294/daily?language=Python" alt="bespokelabsai%2Fnimble | Trendshift" width="250" height="55"/></a>
-
-#4 repository of the day on Trendshift.
-
-[Model](https://huggingface.co/bespokelabs/Bespoke-Nimble-9B) · [Updates](#updates) · [Capabilities](#capabilities) · [Quickstart](#quickstart) · [Methodology](#methodology) · [Documentation and development](#documentation-and-development) · [Authors](#authors) · [Citation](#citation)
+[Model](https://huggingface.co/bespokelabs/Bespoke-Nimble-9B) · [Updates](#updates) · [Capabilities](#capabilities) · [Quickstart](#quickstart) · [Methodology](#methodology) · [Documentation and development](#documentation-and-development) · [Citation](#citation)
 
 ![Introducing Bespoke Nimble. Serving reads the prompt once and then scores one answer token per question. Data curation changes one fact so that the correct answer flips. Training fine-tunes Qwen3.5-9B with LoRA on the answer tokens only. On 324 held-out examples, Bespoke-Nimble-9B matches 90.1% of the reference labels, compared with 66.4% for its base model and 93.2% for Jev 1.13.0.](assets/diagrams/nimble-infographic.svg)
 
@@ -640,10 +636,6 @@ requirements/    # Backend-specific dependencies
 tests/           # Offline and small-model checks
 ```
 
-## Authors
-
-* Bespoke Labs, Shreyas Pimpalgaonkar, Pratik Dalal, Maheswaran Sathiamoorthy
-
 ## Citation
 
 If you use this repository, please cite it. Also give the model revision and
@@ -651,7 +643,7 @@ the dataset release that you used.
 
 ```bibtex
 @misc{nimble2026,
-  author = {{Bespoke Labs} and Pimpalgaonkar, Shreyas and Dalal, Pratik and Sathiamoorthy, Maheswaran},
+  author = {{Bespoke Labs} and Sathiamoorthy, Maheswaran},
   title = {Nimble},
   year = {2026},
   howpublished = {\url{https://github.com/bespokelabsai/nimble}},

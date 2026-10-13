@@ -589,10 +589,43 @@ not write an explanation.
 | Evaluate on public, human-labeled benchmarks | [Public benchmarks](docs/PUBLIC_BENCHMARKS.md) |
 | Create or replay contrastive training data | [Curation guide](docs/TRAINING_EVAL_CURATION.md) |
 | Train or use a schema adapter | [Training guide](docs/NIMBLE_TRAINING.md) |
+| Build on the hosted Nimble API with a coding agent | [Agent skill](#agent-skill) |
 
 Compare two models only when both were tested on the same examples in the same
 way. The guides describe how to generate data and evaluation outputs locally;
 these generated files are not committed to Git.
+
+### Agent skill
+
+The Nimble agent skill helps coding agents build on the hosted Nimble API at
+`api.bespokelabs.ai`. It covers writing questions, choosing a model, handling
+errors, and acting on the probabilities. It does not cover running the model
+from this repository locally. You can [read the skill](plugins/nimble/skills/nimble/SKILL.md)
+directly.
+
+To install it in Claude Code:
+
+```sh
+claude plugin marketplace add bespokelabsai/nimble
+claude plugin install nimble@bespokelabsai
+```
+
+On Claude Code 2.1.275 or later, `/plugin install nimble --marketplace bespokelabsai/nimble`
+does both steps at once. In Claude Code, you can call the skill directly with
+`/nimble:nimble`.
+
+To install it in another agent, use [skills.sh](https://skills.sh) and select
+your agent when asked:
+
+```sh
+npx skills add bespokelabsai/nimble --skill nimble
+```
+
+To have an agent install the skill for you, give it this prompt:
+
+```text
+Install the Nimble skill. If you're in Claude Code, run `claude plugin marketplace add bespokelabsai/nimble`, then `claude plugin install nimble@bespokelabsai`. If you're in another agent, run `npx skills add bespokelabsai/nimble --skill nimble` and select your agent. Use one installation method. You can read the skill directly at https://github.com/bespokelabsai/nimble/blob/main/plugins/nimble/skills/nimble/SKILL.md (raw: https://raw.githubusercontent.com/bespokelabsai/nimble/main/plugins/nimble/skills/nimble/SKILL.md). Then use the Nimble skill when working on this project.
+```
 
 ### Development
 
@@ -638,6 +671,8 @@ docs/            # Current usage, training, curation, and deployment guides
 ignore/          # Local archive of historical docs and assets; not included in Git
 requirements/    # Backend-specific dependencies
 tests/           # Offline and small-model checks
+plugins/nimble/  # Agent skill for the hosted Nimble API (see Agent skill)
+.claude-plugin/  # Marketplace file that installs the agent skill
 ```
 
 ## Authors

@@ -1,0 +1,15 @@
+{
+  "name": "bespokelabsai",
+  "description": "Agent skills from Bespoke Labs.",
+  "owner": {
+    "name": "Bespoke Labs",
+    "url": "https://bespokelabs.ai"
+  },
+  "plugins": [
+    {
+      "name": "nimble",
+      "description": "Build with the hosted Nimble API: typed questions about text or JSON, answered with probabilities.",
+      "source": "./plugins/nimble"
+    }
+  ]
+}

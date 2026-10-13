@@ -26,7 +26,7 @@ class SystemOneHTTP:
     """Any service that speaks `POST /v1/systemone`: Jev or Nimble on openjev-sglang."""
 
     def __init__(self, url, model, api_key=None, timeout=90, attempts=4, headers=None, max_choices=None):
-        if not isinstance(attempts, int) or attempts < 1:
+        if type(attempts) is not int or attempts < 1:
             raise ValueError("attempts must be a positive integer")
         self.url = url.rstrip("/") + "/v1/systemone"
         self.max_choices = max_choices

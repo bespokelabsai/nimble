@@ -63,6 +63,25 @@ class QuestionCompilation(unittest.TestCase):
         self.assertEqual(q["tone"]["criteria"], {"calm": "calm", "angry": "angry"})
         self.assertEqual(q["severity"]["type"], "score")
 
+    def test_bool_criteria_use_wire_keys(self):
+        class Check(BaseModel):
+            eligible: Annotated[bool, Criteria(yes="Allowed", no="Forbidden")] = Field(description="Eligible?")
+
+        self.assertEqual(questions(Check)["eligible"]["criteria"], {"false": "Forbidden", "true": "Allowed"})
+        self.assertEqual(LocalScorer.schema(questions(Check))["eligible"]["choice_descriptions"],
+                         {"false": "Forbidden", "true": "Allowed"})
+
+    def test_candidate_contract_limit(self):
+        class TooWide(BaseModel):
+            pick: Literal[tuple(f"o{i}" for i in range(256))] = Field(description="Which option?")
+
+        class TooFine(BaseModel):
+            level: Annotated[float, Levels(*(f"l{i}" for i in range(256)))] = Field(description="How much?")
+
+        for model in (TooWide, TooFine):
+            with self.assertRaisesRegex(TypeError, "255-candidate limit"):
+                questions(model)
+
     def test_missing_instructions_fail_at_definition(self):
         class Bad(BaseModel):
             flag: bool
@@ -149,8 +168,18 @@ class Tasks(unittest.TestCase):
         @task(backend=Scripted(answers))
         def triage(text: str) -> Triage: ...
 
-        results = triage.map(["refund please", "app crashed", "refund now"], concurrency=2)
-        self.assertEqual([r.refund for r in results], [True, False, True])
+        inputs = ["refund please", "app crashed", "billing issue"]
+        results = triage.map(inputs, concurrency=2)
+        self.assertEqual([r.refund for r in results], [True, False, False])
+        self.assertEqual([evidence(r).state for r in results], inputs)
+
+    def test_concurrency_must_be_positive(self):
+        @task(backend=Scripted(lambda state, questions: ANSWERS))
+        def triage(text: str) -> Triage: ...
+
+        for bad in (0, -1, 1.5, True):
+            with self.assertRaisesRegex(ValueError, "concurrency"):
+                triage.map(["x"], concurrency=bad)
 
     def test_return_type_is_required(self):
         with self.assertRaises(TypeError):
@@ -198,6 +227,53 @@ class Backends(unittest.TestCase):
         self.assertEqual(body["model"], "nimble-latest")
         self.assertEqual(body["state"], "refund")
         self.assertNotIn("secret", repr(backend))
+
+    def test_attempts_must_be_positive(self):
+        for bad in (0, -2):
+            with self.assertRaisesRegex(ValueError, "attempts"):
+                SystemOneHTTP("https://example.test", "m", attempts=bad)
+
+    def test_endpoint_candidate_limit(self):
+        class Wide(BaseModel):
+            pick: Literal[tuple(f"o{i}" for i in range(27))] = Field(description="Which option?")
+
+        questions(Wide)  # Within the 255-candidate contract.
+        backend = SystemOneHTTP("https://example.test", "m", max_choices=26)
+        with self.assertRaisesRegex(ValueError, "at most 26"):
+            judge(Wide, "x", backend=backend)
+
+    def test_local_scorer_lock_works_across_event_loops(self):
+        import threading
+        import time
+
+        class SlowScorer:
+            def __init__(self):
+                self.active = self.peak = 0
+                self.guard = threading.Lock()
+
+            def score(self, context, schema):
+                with self.guard:
+                    self.active += 1
+                    self.peak = max(self.peak, self.active)
+                time.sleep(0.05)
+                with self.guard:
+                    self.active -= 1
+                return {"fields": {name: {"scores": {"false": 0.4, "true": 0.6}} for name in schema}}
+
+        class Flag(BaseModel):
+            flag: bool = Field(description="Is it flagged?")
+
+        scorer = SlowScorer()
+        backend = LocalScorer(scorer)
+        results = []
+        threads = [threading.Thread(target=lambda: results.append(judge(Flag, "x", backend=backend)))
+                   for _ in range(3)]
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join(timeout=5)
+        self.assertEqual(len(results), 3)  # Every sync call, each on its own loop, completed.
+        self.assertEqual(scorer.peak, 1)  # And forward passes never overlapped.
 
     def test_local_scorer_translation(self):
         class FakeScorer:

@@ -7,6 +7,7 @@ the `/v1/systemone` response shape, so tasks never depend on the backend.
 import asyncio
 import json
 import os
+import threading
 
 import httpx
 
@@ -24,8 +25,11 @@ class BackendError(RuntimeError):
 class SystemOneHTTP:
     """Any service that speaks `POST /v1/systemone`: Jev or Nimble on openjev-sglang."""
 
-    def __init__(self, url, model, api_key=None, timeout=90, attempts=4, headers=None):
+    def __init__(self, url, model, api_key=None, timeout=90, attempts=4, headers=None, max_choices=None):
+        if not isinstance(attempts, int) or attempts < 1:
+            raise ValueError("attempts must be a positive integer")
         self.url = url.rstrip("/") + "/v1/systemone"
+        self.max_choices = max_choices
         self.model = model
         self.timeout = timeout
         self.attempts = attempts
@@ -37,6 +41,10 @@ class SystemOneHTTP:
         return f"{type(self).__name__}(url={self.url!r}, model={self.model!r})"
 
     async def evaluate(self, state, questions, client=None):
+        if self.max_choices is not None:
+            for name, question in questions.items():
+                if len(question.get("criteria") or ()) > self.max_choices and question["type"] != "noul":
+                    raise ValueError(f"{name}: this endpoint accepts at most {self.max_choices} candidates")
         payload = {"model": self.model, "state": state, "questions": questions}
         own = client is None
         client = client or httpx.AsyncClient(timeout=self.timeout)
@@ -69,6 +77,7 @@ def jev(model="jev-1.13.0", api_key=None, url=TYPESAFE_URL, **kwargs):
 
 def nimble(url=None, model="nimble-latest", api_key=None, **kwargs):
     """A Nimble endpoint served with `deploy/modal_app.py` (public by default)."""
+    kwargs.setdefault("max_choices", 26)  # The hosted server's /v1/limits max_answers_per_question.
     return SystemOneHTTP(url or os.environ.get("NIMBLE_URL", NIMBLE_URL), model,
                          api_key=api_key or os.environ.get("NIMBLE_API_KEY"), **kwargs)
 
@@ -82,7 +91,9 @@ class LocalScorer:
     def __init__(self, scorer, **score_kwargs):
         self.scorer = scorer
         self.score_kwargs = score_kwargs
-        self._lock = asyncio.Lock()  # One forward pass at a time on one device.
+        # One forward pass at a time on one device. A thread lock, taken in the worker thread,
+        # stays correct when sync calls from several threads each run their own event loop.
+        self._lock = threading.Lock()
 
     @staticmethod
     def schema(questions):
@@ -93,7 +104,7 @@ class LocalScorer:
             if q["type"] == "noul":
                 field.update(type="boolean", choices=[False, True])
                 criteria = q.get("criteria") or {}
-                descriptions = {k: criteria[c] for k, c in (("false", "no"), ("true", "yes")) if criteria.get(c)}
+                descriptions = {k: criteria[k] for k in ("false", "true") if criteria.get(k)}
                 if descriptions:
                     field["choice_descriptions"] = descriptions
             elif q["type"] == "choice":
@@ -119,11 +130,13 @@ class LocalScorer:
                                  "score": sum(int(k) * p for k, p in scores.items())}
         return answers
 
+    def _score(self, context, schema):
+        with self._lock:
+            return self.scorer.score(context, schema, **self.score_kwargs)
+
     async def evaluate(self, state, questions, client=None):
         context = state if isinstance(state, str) else json.dumps(state, ensure_ascii=False, allow_nan=False)
-        async with self._lock:
-            result = await asyncio.to_thread(self.scorer.score, context, self.schema(questions),
-                                             **self.score_kwargs)
+        result = await asyncio.to_thread(self._score, context, self.schema(questions))
         return self.answers(questions, result)
 
 

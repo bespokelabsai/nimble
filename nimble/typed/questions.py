@@ -9,6 +9,8 @@ from dataclasses import dataclass, field as dataclass_field
 from pydantic import BaseModel
 from pydantic.fields import FieldInfo
 
+from nimble.scoring.serving_schema import MAX_CHOICES
+
 
 class Criteria(dict):
     """`Annotated` metadata describing what each answer means.
@@ -103,11 +105,15 @@ def compile_field(name, info: FieldInfo):
         unknown = set(criteria) - {"yes", "no"}
         if unknown:
             raise TypeError(f"{name}: a bool takes Criteria(yes=..., no=...), not {sorted(unknown)}")
-        return Question(name, "noul", instructions, criteria or None, {"false": False, "true": True})
+        # The wire contract keys Noul criteria by answer value, as in data/*.jsonl.
+        wire = {key: criteria[label] for key, label in (("false", "no"), ("true", "yes")) if label in criteria}
+        return Question(name, "noul", instructions, wire or None, {"false": False, "true": True})
 
     if annotation in (int, float):
         if not levels:
             raise TypeError(f"{name}: a numeric judgment is a Score; annotate it with Levels(...)")
+        if len(levels) > MAX_CHOICES:
+            raise TypeError(f"{name}: {len(levels)} levels exceeds the {MAX_CHOICES}-candidate limit")
         return Question(name, "score", instructions, levels,
                         {str(i): i for i in range(len(levels))}, expected=annotation is float)
 
@@ -117,6 +123,8 @@ def compile_field(name, info: FieldInfo):
         values = {str(m.value): m for m in annotation}
     else:
         raise TypeError(f"{name}: use bool, Literal[...], an Enum, or int/float with Levels; got {annotation!r}")
+    if len(values) > MAX_CHOICES:
+        raise TypeError(f"{name}: {len(values)} options exceeds the {MAX_CHOICES}-candidate limit")
     unknown = set(criteria) - set(values)
     if unknown:
         raise TypeError(f"{name}: criteria for unknown options {sorted(unknown)}")

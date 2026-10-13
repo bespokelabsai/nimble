@@ -171,6 +171,8 @@ class Task(typing.Generic[Output]):
 
         Each item is one argument, a tuple of arguments, or a dict of keyword arguments.
         """
+        if not isinstance(concurrency, int) or isinstance(concurrency, bool) or concurrency < 1:
+            raise ValueError("concurrency must be a positive integer")
         limit = asyncio.Semaphore(concurrency)
         single = len(self.signature.parameters) == 1
         async with httpx.AsyncClient(timeout=120, limits=httpx.Limits(max_connections=concurrency)) as client:

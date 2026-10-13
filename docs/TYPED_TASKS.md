@@ -48,14 +48,16 @@ class Triage(BaseModel):
 - The instruction comes from `Field(description=...)` or from an attribute
   docstring when the model sets `use_attribute_docstrings=True`.
 - `Criteria(...)` describes the options of a Choice. On a `bool`, use
-  `Criteria(yes=..., no=...)`. Options without a description are sent as
-  their names.
+  `Criteria(yes=..., no=...)`; these are sent with the API's `true` and
+  `false` keys. Options without a description are sent as their names.
 - If you'd rather keep the type plain, you can write
   `Field(json_schema_extra={"criteria": {...}})` or `{"levels": [...]}`
   instead of the `Annotated` metadata.
 - A model with an unsupported field fails when a task is defined, for
   example a field with no description, an `Optional` field (add an explicit
-  "none" choice instead), or a number without `Levels`.
+  "none" choice instead), a number without `Levels`, or more than 255
+  options or levels. The hosted Nimble endpoint accepts at most 26, so
+  `nimble()` checks that limit before sending a request.
 - The answers go through `model_validate`, so the model's own validators
   still run.
 

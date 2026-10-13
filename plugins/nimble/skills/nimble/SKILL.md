@@ -181,13 +181,21 @@ pip install typesafe-sdk
 ```python
 import os
 
-from typesafe_sdk import Choice, Noul, TypeSafeClient
+from typesafe_sdk import Choice, Noul, RetryPolicy, TypeSafeClient
+
+# Example thresholds. Tune them on labeled examples from your own data.
+REFUND_THRESHOLD = 0.9
+ROUTING_THRESHOLD = 0.8
 
 client = TypeSafeClient(
     api_key=os.environ["BESPOKE_API_KEY"],
     base_url="https://api.bespokelabs.ai",
     model="nimble-v4",
+    # The SDK retries failed calls by itself. Limit it to Nimble's retryable statuses.
+    retry=RetryPolicy(http_statuses={429, 502, 503, 529}),
 )
+
+ticket_text = "I was charged twice for my subscription this month. Please refund one of the charges."
 
 response = client.system_one(
     ticket_text,
@@ -203,14 +211,30 @@ response = client.system_one(
     },
 )
 
-if response.answers["requests_refund"].noul >= REFUND_THRESHOLD:
-    ...
-department = response.answers["department"].choice
+refund = response.nouls["requests_refund"]
+if refund.noul >= REFUND_THRESHOLD:
+    print(f"Refund requested (p={refund.noul:.2f})")
+else:
+    print(f"No clear refund request (p={refund.noul:.2f}), so a person should check")
+
+department = response.choices["department"]
+p = department.probabilities[department.choice]
+if p >= ROUTING_THRESHOLD:
+    print(f"Route to {department.choice} (p={p:.2f})")
+else:
+    print(f"Unsure of the department, so send it to human review: {department.probabilities}")
 ```
 
-- `Score(instructions=..., criteria=[...])` asks a score question. Read its `.score`.
+- `response.nouls`, `response.choices`, and `response.scores` hold the answers of each type,
+  typed for your type checker. `response.answers` holds all of them.
+- `Score(instructions=..., criteria=[...])` asks a score question. Read `.score` from
+  `response.scores[...]`. Its `.probabilities` are keyed by level number.
 - Pass `model="nimble-v4-max"` to `system_one` to use another model for one call.
 - `AsyncTypeSafeClient` takes the same arguments. Use it with `async with`.
+- The SDK retries failed calls on its own: by default up to 2 retries within 30 seconds,
+  honoring `Retry-After`. Its default statuses also include `504` and every other `5xx`, so
+  pass `RetryPolicy(http_statuses={429, 502, 503, 529})` as above. Do not wrap SDK calls in a
+  retry loop of your own. Change the `RetryPolicy` instead.
 - The SDK can also read `TYPESAFE_API_KEY`, `TYPESAFE_BASE_URL`, and
   `TYPESAFE_DEFAULT_MODEL`. Either way, set the base URL to `https://api.bespokelabs.ai`,
   or the SDK will not call Nimble, and use a Bespoke Labs key, not a TypeSafe key.
@@ -246,6 +270,8 @@ Then write the questions:
   default.
 - Choose thresholds from labeled examples, not by guessing, and measure accuracy on a small
   labeled set at the threshold you pick.
+- Before you act on a `choice` answer, check `probabilities[choice]`, the probability of the
+  chosen option, against a threshold, as the Python example does. Send low values to review.
 - Use `probabilities` when answers near a boundary matter, and the expected `score` to rank
   items.
 - Start with `nimble-v4`. Move a question to `nimble-v4-max` only if labeled examples show
@@ -256,5 +282,6 @@ Then write the questions:
 - Run a few representative inputs, including edge cases, and check every answer field your
   code reads.
 - Handle every status in the error table. Retry only `429`, `502`, `503`, and `529`, with
-  backoff, and honor `Retry-After`.
+  backoff, and honor `Retry-After`. With the Python SDK, set this with `RetryPolicy` instead
+  of writing your own retry loop.
 - Keep `BESPOKE_API_KEY` out of source control and client bundles.

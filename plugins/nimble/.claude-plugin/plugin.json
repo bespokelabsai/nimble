@@ -1,6 +1,6 @@
 {
   "name": "nimble",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Build with the hosted Nimble API from Bespoke Labs: typed questions about text or JSON, answered with probabilities.",
   "author": {
     "name": "Bespoke Labs",

@@ -38,8 +38,12 @@ These are the main steps from the release of Jev to the launch of Nimble-v4.
 - On September 29, 2026, [Ollama](https://ollama.com) added Nimble-v2
   ([Bespoke-Nimble-9B-v2](https://huggingface.co/bespokelabs/Bespoke-Nimble-9B-v2)),
   so you can run it on your own computer with `ollama pull nimble`.
-- On October 6, 2026, Nimble-v3 was the #1 open model under 25B on the Decision
-  Index.
+- On October 6, 2026, [Nimble-v3](https://huggingface.co/bespokelabs/Bespoke-Nimble-9B-v3)
+  was the #1 open model under 25B on the Decision Index. Jev is the only model
+  with a higher score in this view, and Jev is not open.
+
+  <img src="assets/timeline/nimble-v3-decision-index-under-25b.png" alt="The Decision Index chart with the size filter set to models up to 24.4B. Jev, the reference model, scores 60.1. Bespoke Nimble 9B v3 scores 54.7, the highest score of the open models. The next model, Nace.AI Drex v1.5, scores 50.8." width="520">
+
 - On October 13, 2026, we launched Nimble-v4 (9B) and Nimble-v4-max (27B) on
   the API at [console.bespokelabs.ai](https://console.bespokelabs.ai). On the
   public suite of the Decision Index, Nimble-v4-max is #1 with 68.46, and

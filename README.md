@@ -32,8 +32,6 @@ These are the main steps from the release of Jev to the launch of Nimble-v4.
 
 - On September 14, 2026, TypeSafe released
   [Jev](https://docs.typesafe.ai/primitives/choice), a decision model.
-- On September 17, 2026, [Mahesh Sathiamoorthy](https://x.com/madiator) asked
-  on X, "Should I build an OpenJev?"
 - On September 18, 2026, we released Nimble-v1 as
   [Bespoke-Nimble-9B](https://huggingface.co/bespokelabs/Bespoke-Nimble-9B),
   together with its data and its training recipe.

@@ -90,7 +90,7 @@ async def main():
     settings = Settings(model=str(path), served_model_name=MODEL, model_alias="nimble-latest",
                         max_input_tokens=MAX_PROMPT_TOKENS + 1,
                         max_total_input_tokens=32 * (MAX_PROMPT_TOKENS + 1),
-                        max_concurrent_requests=4, max_concurrent_branches=32,
+                        max_concurrent_requests=4, max_concurrent_branches=32, api_key=os.environ["NIMBLE_API_KEY"],
                         temperature=served_temperature(json.loads((path / "READY.json").read_text())))
     command = ["/opt/sglang/bin/python", "-m", "sglang.launch_server",
                "--model-path", str(path), "--tokenizer-path", str(path),

@@ -4,5 +4,5 @@ torch>=2.8,<3
 transformers==5.17.0
 accelerate==1.15.0
 sentencepiece==0.2.2
-pillow==12.3.0
+pillow==13.0.0
 python-dotenv==1.2.2

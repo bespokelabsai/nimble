@@ -246,12 +246,17 @@ def run(data, output, model=DEFAULT_MODEL, concurrency=4, limit=None, transport=
                 "model": model, "api_url": API_URL, "concurrency": concurrency, "limit": limit,
                 "retry_attempts": attempts, "started_utc": datetime.now(timezone.utc).isoformat()}
     manifest_path = output / "manifest.json"
+    rows_path = output / "rows.jsonl"
     if manifest_path.exists():
         saved = json.loads(manifest_path.read_text(encoding="utf-8"))
         if any(saved.get(k) != manifest[k] for k in ("dataset_sha256", "model", "api_url", "limit")):
             raise ValueError("Existing run in this directory used different data or model settings")
         manifest = saved
-    rows_path = output / "rows.jsonl"
+    elif rows_path.exists() and rows_path.stat().st_size:
+        raise ValueError("Saved responses exist without provenance; use a new output directory")
+    temporary = manifest_path.with_suffix(".json.tmp")
+    temporary.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+    temporary.replace(manifest_path)
     rows = read_saved(rows_path, lookup)
     retried = sum("error" in r for r in rows)
     if retried:

@@ -46,5 +46,7 @@ class ResumeManifestTests(unittest.TestCase):
             output = Path(tmp) / "run"
             run(data, output, transport=lambda payload: response())
             (output / "manifest.json").unlink()
+            transport = Mock()
             with self.assertRaisesRegex(ValueError, "provenance"):
-                run(data, output, model="another-model", transport=Mock())
+                run(data, output, model="another-model", transport=transport)
+            transport.assert_not_called()

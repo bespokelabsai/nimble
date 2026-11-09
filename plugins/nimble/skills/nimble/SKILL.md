@@ -127,7 +127,7 @@ you can pass structured records as they are.
 
 | Model | Use it |
 | --- | --- |
-| `nimble-v4.1-max` | By default. It is the newest and most accurate model, and `nimble-latest` points to it. It has zero data retention: requests to it are not kept. |
+| `nimble-v4.1-max` | By default. It is the newest and most accurate model, and `nimble-latest` points to it. It has zero data retention. |
 | `nimble-v4-max` | Only in code that already uses it. It is the previous model and still works. |
 | `nimble-v4` | Not in new code. It is deprecated and now answers with `nimble-v4-max`. |
 | `nimble-v3` | Not in new code. It is deprecated. |

@@ -52,9 +52,9 @@ These are the main steps from the release of Jev to the launch of Nimble-v4.1.
   Nimble-v4-max in our own run on October 12, 2026. They are not yet on the
   Decision Index dashboard.
 - On November 5, 2026, we released Nimble-v4.1 (27B). At release, it was tied
-  for #2 on the Decision Index. On the public suite it scores 72.74, up from
-  68.46 for Nimble-v4-max. You can call it on the API as `nimble-v4.1-max`.
-  This endpoint has zero data retention: we don't keep your requests.
+  for #2 on the Decision Index. It scores 70.0 overall and 72.74 on the public
+  suite, up from 68.46 on the public suite for Nimble-v4-max. It is available
+  on the API as `nimble-v4.1-max`, with zero data retention, and
   `nimble-latest` now points to it. The weights are on Hugging Face as the
   `v4.1` tag of [Nimble-v4-max](https://huggingface.co/bespokelabs/Nimble-v4-max).
 

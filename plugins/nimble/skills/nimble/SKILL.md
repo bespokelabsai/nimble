@@ -9,7 +9,7 @@ description: >
   allowed answer. Use when a feature needs a judgment that code can act on,
   such as routing, triage, classification, moderation, or checking text
   against a rule; when an LLM prompt-and-parse step could become a structured
-  decision; or when code uses Nimble, nimble-v4, BESPOKE_API_KEY, or
+  decision; or when code uses Nimble, nimble-v4.1-max, nimble-v4, BESPOKE_API_KEY, or
   api.bespokelabs.ai.
 ---
 
@@ -54,7 +54,7 @@ secret store, and never put it in client-side code.
 
 ```json
 {
-  "model": "nimble-v4",
+  "model": "nimble-v4.1-max",
   "state": "The customer was charged twice and asks for a refund. The service still works.",
   "questions": {
     "requests_refund": {
@@ -86,7 +86,7 @@ The response uses your question IDs as keys. The numbers here are only an exampl
 
 ```json
 {
-  "model": "nimble-v4",
+  "model": "nimble-v4.1-max",
   "answers": {
     "requests_refund": { "type": "noul", "noul": 0.99 },
     "department": {
@@ -127,8 +127,9 @@ you can pass structured records as they are.
 
 | Model | Use it |
 | --- | --- |
-| `nimble-v4` | By default. Fast and low cost. `nimble-latest` currently points to it. |
-| `nimble-v4-max` | When accuracy matters more than cost or speed. It is the most accurate model, and it is slower and costs more per token. |
+| `nimble-v4.1-max` | By default. It is the newest and most accurate model, and `nimble-latest` points to it. It has zero data retention: requests to it are not kept. |
+| `nimble-v4-max` | Only in code that already uses it. It is the previous model and still works. |
+| `nimble-v4` | Not in new code. It is deprecated and now answers with `nimble-v4-max`. |
 | `nimble-v3` | Not in new code. It is deprecated. |
 
 A request without `model` uses `nimble-latest`, which moves to newer models as they are
@@ -190,7 +191,7 @@ ROUTING_THRESHOLD = 0.8
 client = TypeSafeClient(
     api_key=os.environ["BESPOKE_API_KEY"],
     base_url="https://api.bespokelabs.ai",
-    model="nimble-v4",
+    model="nimble-v4.1-max",
     # The SDK retries failed calls by itself. Limit it to Nimble's retryable statuses.
     retry=RetryPolicy(http_statuses={429, 502, 503, 529}),
 )
@@ -274,8 +275,8 @@ Then write the questions:
   chosen option, against a threshold, as the Python example does. Send low values to review.
 - Use `probabilities` when answers near a boundary matter, and the expected `score` to rank
   items.
-- Start with `nimble-v4`. Move a question to `nimble-v4-max` only if labeled examples show
-  that it needs more accuracy, and tune its threshold again when you do.
+- Start with `nimble-v4.1-max`. If you move a question to another model, tune its threshold
+  again.
 
 ## Before you finish
 

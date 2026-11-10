@@ -4,6 +4,7 @@ from unittest.mock import AsyncMock
 
 from nimble.datasets.curation_providers import (
     CurationClient, anthropic_request, normalize_anthropic, provider_for, openrouter_request, requesty_request,
+    cheaperinference_request,
 )
 
 
@@ -145,6 +146,42 @@ class ProviderTests(unittest.IsolatedAsyncioTestCase):
             result.model = returned
             self.assertEqual((await client.create(**original)).model, returned)
         for returned in ['different-model', 'anthropic/claude-sonnet-5', 'anthropic.claude-sonnet-50-v1:0', None]:
+            result.model = returned
+            with self.assertRaisesRegex(RuntimeError,'unexpected model'):
+                await client.create(**original)
+        result.model = 'claude-sonnet-5'
+        for reason, refusal, calls in [('length',None,[call]), ('tool_calls','refused',[call]),
+                                       ('tool_calls',None,[]), ('tool_calls',None,[call,call])]:
+            choice.finish_reason = reason
+            choice.message.refusal = refusal
+            choice.message.tool_calls = calls
+            with self.assertRaisesRegex(RuntimeError,'no training label was accepted'):
+                await client.create(**original)
+
+    async def test_cheaperinference_pins_model_and_schema(self):
+        original = spec()
+        request = cheaperinference_request(original)
+        self.assertEqual(request['model'], 'claude-sonnet-5')
+        self.assertEqual(request['messages'], original['messages'])
+        self.assertEqual(request['tools'][0]['function']['parameters'],
+                         original['response_format']['json_schema']['schema'])
+        self.assertTrue(request['tools'][0]['function']['strict'])
+        self.assertEqual(request['tool_choice']['function']['name'], 'Result')
+        self.assertEqual(request['reasoning_effort'], 'low')
+        self.assertNotIn('reasoning_effort', cheaperinference_request(spec(effort='none')))
+        self.assertNotIn('temperature', request)
+        call = SimpleNamespace(function=SimpleNamespace(name='Result',arguments='{"valid":true}'))
+        choice = SimpleNamespace(finish_reason='tool_calls',
+                                 message=SimpleNamespace(refusal=None,tool_calls=[call]))
+        result = SimpleNamespace(model='claude-sonnet-5',choices=[choice],usage=None)
+        create = AsyncMock(return_value=result)
+        transport = SimpleNamespace(chat=SimpleNamespace(completions=SimpleNamespace(create=create)))
+        client = CurationClient(['claude-sonnet-5'], {'cheaperinference':transport}, claude_provider='cheaperinference')
+        normalized = await client.create(**original)
+        self.assertEqual(normalized.choices[0].message.content, '{"valid":true}')
+        self.assertEqual(normalized.usage.model_dump()['cheaperinference_model'], 'claude-sonnet-5')
+        create.assert_awaited_once_with(**request)
+        for returned in ['bedrock/claude-sonnet-5', 'anthropic/claude-sonnet-5', 'different-model', None]:
             result.model = returned
             with self.assertRaisesRegex(RuntimeError,'unexpected model'):
                 await client.create(**original)

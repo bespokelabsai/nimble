@@ -4,7 +4,7 @@ from types import SimpleNamespace
 
 
 def provider_for(model, claude_provider='anthropic'):
-    if claude_provider not in ('anthropic', 'openrouter', 'requesty'):
+    if claude_provider not in ('anthropic', 'openrouter', 'requesty', 'cheaperinference'):
         raise ValueError('Unsupported Claude provider: ' + claude_provider)
     if model.startswith('gpt-'):
         return 'openai'
@@ -127,6 +127,40 @@ def normalize_requesty(result, spec):
             message=SimpleNamespace(refusal=None, content=calls[0].function.arguments))])
 
 
+def cheaperinference_request(spec):
+    """Pin the requested Claude model to the Cheaper Inference chat route."""
+    effort = spec['reasoning_effort']
+    if effort not in ('none', 'low', 'medium', 'high'):
+        raise ValueError('Unsupported Claude effort: ' + effort)
+    schema = spec['response_format']['json_schema']
+    # Same strict result-tool schema as the OpenRouter and Requesty routes. Cheaper
+    # Inference serves the model under its bare id; no fallback policy is requested.
+    request = {'model': spec['model'], 'messages': spec['messages'],
+               'max_tokens': spec['max_completion_tokens'],
+               'tools': [{'type': 'function', 'function': {'name': schema['name'],
+                          'description': 'Return the requested curation result.',
+                          'parameters': schema['schema'], 'strict': True}}],
+               'tool_choice': {'type': 'function', 'function': {'name': schema['name']}}}
+    if effort != 'none':
+        request['reasoning_effort'] = effort
+    return request
+
+
+def normalize_cheaperinference(result, spec):
+    if result.model != spec['model']:
+        raise RuntimeError('Cheaper Inference returned an unexpected model')
+    choice = result.choices[0]
+    calls = choice.message.tool_calls or []
+    if (choice.finish_reason != 'tool_calls' or choice.message.refusal or len(calls) != 1
+            or calls[0].function.name != spec['response_format']['json_schema']['name']):
+        raise RuntimeError('Incomplete/refused/unexpected result tool; no training label was accepted')
+    usage = result.usage.model_dump() if result.usage else {}
+    usage['cheaperinference_model'] = spec['model']
+    return SimpleNamespace(model=result.model, usage=SimpleNamespace(model_dump=lambda:usage),
+        choices=[SimpleNamespace(finish_reason='stop',
+            message=SimpleNamespace(refusal=None, content=calls[0].function.arguments))])
+
+
 class CurationClient:
     """Expose the narrow completion interface consumed by AsyncStages."""
     def __init__(self, models, clients=None, claude_provider='anthropic'):
@@ -147,6 +181,10 @@ class CurationClient:
                 from openai import AsyncOpenAI
                 self.clients[provider] = AsyncOpenAI(base_url='https://router.requesty.ai/v1',
                     api_key=os.environ['REQUESTY_API_KEY'], max_retries=2, timeout=180)
+            elif provider == 'cheaperinference':
+                from openai import AsyncOpenAI
+                self.clients[provider] = AsyncOpenAI(base_url='https://api.cheaperinference.com/v1',
+                    api_key=os.environ['CHEAPER_INFERENCE_API_KEY'], max_retries=2, timeout=180)
             else:
                 from anthropic import AsyncAnthropic
                 self.clients[provider] = AsyncAnthropic(base_url='https://api.anthropic.com', max_retries=2, timeout=180)
@@ -162,6 +200,9 @@ class CurationClient:
         if provider == 'requesty':
             result = await client.chat.completions.create(**requesty_request(spec))
             return normalize_requesty(result, spec)
+        if provider == 'cheaperinference':
+            result = await client.chat.completions.create(**cheaperinference_request(spec))
+            return normalize_cheaperinference(result, spec)
         return normalize_anthropic(await client.messages.create(**anthropic_request(spec)))
 
     async def close(self):

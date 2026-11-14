@@ -60,10 +60,12 @@ These are the main steps from the release of Jev to the launch of Nimble-v4.1.
 
   <img src="assets/timeline/nimble-v4.1-decision-index.png" alt="The Decision Index chart at the release of Nimble-v4.1. Bespoke Nimble v4.1 Max (27B) scores 70.0 and is in the group tied for #2, with Turion Jev 31B at 70.5 and vLLM-SR d3-ultra at 70.2. The tied #1 group scores 71.1 to 71.9." width="360">
 
-- On the Decision Index 0.4.1 board of November 12, 2026, newer entries have
-  moved Nimble-v4.1 down from the group tied for #2. It is #15 of 301 models,
-  with a Full score of 70.03. On the same board, Perplexity Decider v1.2 scores
-  67.98 and Jev 1.14 scores 60.24. All three numbers are the board's own
+- On the Decision Index 0.4.1 board of November 12, 2026, Nimble-v4.1 has a
+  Full score of 70.03. That is 9.8 points ahead of Jev 1.14 (60.24) and 2.1
+  points ahead of Perplexity Decider v1.2 (67.98). Newer entries have moved it
+  from tied #2 to tied #4 of 301 models. The board ranks tie groups: models
+  within 0.9 points of the first model in their group share a rank, and the
+  next group takes the next number. All of these numbers are the board's own
   ([Decision Index](https://huggingface.co/spaces/multimodalart/jev-decision-index),
   [board data](https://huggingface.co/datasets/multimodalart/decision-index-leaderboard)).
 

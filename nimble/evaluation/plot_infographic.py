@@ -183,7 +183,7 @@ def results(x, y, models):
     for i, r in enumerate(rows):
         top, value = y + 140 + 38 * i, 100 * r['correct'] / r['count']
         nimble = r['name'] == 'Bespoke-Nimble-9B'
-        fill = RED if nimble else TEAL if r['name'].startswith('Jev') else BLUE
+        fill = RED if nimble else BLUE
         length, weight = 3.6 * value, 700 if nimble else 400
         out += [text(x0 + 214, top + 17, r['name'], 20, BLACK, weight, 'end'),
                 f'<path d="M{x0 + 228},{top} H{x0 + 224 + length} A4,4 0 0 1 {x0 + 228 + length},{top + 4} '
@@ -192,8 +192,7 @@ def results(x, y, models):
     score = {r['name']: 100 * r['correct'] / r['count'] for r in rows}
     nimble = score['Bespoke-Nimble-9B']
     callouts = [(f'+{nimble - score["Qwen3.5-9B"]:.0f}', 'over its base model,', 'Qwen3.5-9B'),
-                (f'+{nimble - score["Qwen3.8-27B"]:.0f}', 'over Qwen3.8-27B,', 'a model 3× larger'),
-                (f'{score["Jev 1.13.0"] - nimble:.0f}', 'behind Jev 1.13.0', 'from TypeSafe')]
+                (f'+{nimble - score["Qwen3.8-27B"]:.0f}', 'over Qwen3.8-27B,', 'a model 3× larger')]
     for i, (big, line1, line2) in enumerate(callouts):
         cx = x0 + 229 * i
         out += [rect(cx, y + 440, 40, 4, RED, rx=2),

@@ -32,12 +32,10 @@ def main():
     fig, ax = plt.subplots(figsize=(12, 7), facecolor=TAN)
     ax.set_facecolor(TAN)
     fig.subplots_adjust(left=.085, right=.98, top=.76, bottom=.13)
-    colors = [RED if r['name'] == 'Bespoke-Nimble-9B' else
-              TEAL if r['name'] == 'Jev 1.13.0' else BLUE for r in models]
+    colors = [RED if r['name'] == 'Bespoke-Nimble-9B' else BLUE for r in models]
     values = [100 * r['correct'] / r['count'] for r in models]
     ax.bar(range(len(models)), values, width=.62, color=colors, zorder=3)
-    labels = {'Bespoke-Nimble-9B': 'Bespoke-\nNimble-9B', 'Jev 1.13.0': 'Jev\n1.13.0',
-              'Gemma 3 270M IT': 'Gemma 3\n270M IT'}
+    labels = {'Bespoke-Nimble-9B': 'Bespoke-\nNimble-9B', 'Gemma 3 270M IT': 'Gemma 3\n270M IT'}
     ax.set_xticks(range(len(models)), [labels.get(r['name'], r['name'].replace('-', '\n')) for r in models])
     ax.set_ylim(0, 110)
     ax.set_yticks([0, 25, 50, 75, 100])

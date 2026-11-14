@@ -31,11 +31,6 @@
       "name": "Bespoke-Nimble-9B",
       "correct": 292,
       "count": 324
-    },
-    {
-      "name": "Jev 1.13.0",
-      "correct": 302,
-      "count": 324
     }
   ]
 }

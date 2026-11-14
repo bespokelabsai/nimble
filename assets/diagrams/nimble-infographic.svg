@@ -155,27 +155,24 @@
 <text x="912" y="865" font-size="34" fill="#0F484D" font-weight="400" text-anchor="start" class="serif">Results</text>
 <text x="912" y="899" font-size="21" fill="#5E5A57" font-weight="400" text-anchor="start" class="sans">Agreement with reference labels on 324 held-out examples</text>
 <line x1="1078" y1="928" x2="1078" y2="1208" stroke="#E4DACA" stroke-width="1.5"/>
-<text x="1064" y="953" font-size="20" fill="#231F20" font-weight="400" text-anchor="end" class="sans">Jev 1.13.0</text>
-<path d="M1078,936 H1409.5555555555557 A4,4 0 0 1 1413.5555555555557,940 V954 A4,4 0 0 1 1409.5555555555557,958 H1078 Z" fill="#0F484D"/>
-<text x="1423.5555555555557" y="953" font-size="19" fill="#231F20" font-weight="400" text-anchor="start" class="sans">93.2%</text>
-<text x="1064" y="991" font-size="20" fill="#231F20" font-weight="700" text-anchor="end" class="sans">Bespoke-Nimble-9B</text>
-<path d="M1078,974 H1398.4444444444443 A4,4 0 0 1 1402.4444444444443,978 V992 A4,4 0 0 1 1398.4444444444443,996 H1078 Z" fill="#F44029"/>
-<text x="1412.4444444444443" y="991" font-size="19" fill="#231F20" font-weight="700" text-anchor="start" class="sans">90.1%</text>
-<text x="1064" y="1029" font-size="20" fill="#231F20" font-weight="400" text-anchor="end" class="sans">Qwen3.8-27B</text>
-<path d="M1078,1012 H1379.5555555555557 A4,4 0 0 1 1383.5555555555557,1016 V1030 A4,4 0 0 1 1379.5555555555557,1034 H1078 Z" fill="#B9C8DD"/>
-<text x="1393.5555555555557" y="1029" font-size="19" fill="#231F20" font-weight="400" text-anchor="start" class="sans">84.9%</text>
-<text x="1064" y="1067" font-size="20" fill="#231F20" font-weight="400" text-anchor="end" class="sans">Qwen3.5-9B</text>
-<path d="M1078,1050 H1312.888888888889 A4,4 0 0 1 1316.888888888889,1054 V1068 A4,4 0 0 1 1312.888888888889,1072 H1078 Z" fill="#B9C8DD"/>
-<text x="1326.888888888889" y="1067" font-size="19" fill="#231F20" font-weight="400" text-anchor="start" class="sans">66.4%</text>
-<text x="1064" y="1105" font-size="20" fill="#231F20" font-weight="400" text-anchor="end" class="sans">Qwen3.5-4B</text>
-<path d="M1078,1088 H1295.111111111111 A4,4 0 0 1 1299.111111111111,1092 V1106 A4,4 0 0 1 1295.111111111111,1110 H1078 Z" fill="#B9C8DD"/>
-<text x="1309.111111111111" y="1105" font-size="19" fill="#231F20" font-weight="400" text-anchor="start" class="sans">61.4%</text>
-<text x="1064" y="1143" font-size="20" fill="#231F20" font-weight="400" text-anchor="end" class="sans">Qwen3.5-0.8B</text>
-<path d="M1078,1126 H1237.3333333333333 A4,4 0 0 1 1241.3333333333333,1130 V1144 A4,4 0 0 1 1237.3333333333333,1148 H1078 Z" fill="#B9C8DD"/>
-<text x="1251.3333333333333" y="1143" font-size="19" fill="#231F20" font-weight="400" text-anchor="start" class="sans">45.4%</text>
-<text x="1064" y="1181" font-size="20" fill="#231F20" font-weight="400" text-anchor="end" class="sans">Gemma 3 270M IT</text>
-<path d="M1078,1164 H1177.3333333333333 A4,4 0 0 1 1181.3333333333333,1168 V1182 A4,4 0 0 1 1177.3333333333333,1186 H1078 Z" fill="#B9C8DD"/>
-<text x="1191.3333333333333" y="1181" font-size="19" fill="#231F20" font-weight="400" text-anchor="start" class="sans">28.7%</text>
+<text x="1064" y="953" font-size="20" fill="#231F20" font-weight="700" text-anchor="end" class="sans">Bespoke-Nimble-9B</text>
+<path d="M1078,936 H1398.4444444444443 A4,4 0 0 1 1402.4444444444443,940 V954 A4,4 0 0 1 1398.4444444444443,958 H1078 Z" fill="#F44029"/>
+<text x="1412.4444444444443" y="953" font-size="19" fill="#231F20" font-weight="700" text-anchor="start" class="sans">90.1%</text>
+<text x="1064" y="991" font-size="20" fill="#231F20" font-weight="400" text-anchor="end" class="sans">Qwen3.8-27B</text>
+<path d="M1078,974 H1379.5555555555557 A4,4 0 0 1 1383.5555555555557,978 V992 A4,4 0 0 1 1379.5555555555557,996 H1078 Z" fill="#B9C8DD"/>
+<text x="1393.5555555555557" y="991" font-size="19" fill="#231F20" font-weight="400" text-anchor="start" class="sans">84.9%</text>
+<text x="1064" y="1029" font-size="20" fill="#231F20" font-weight="400" text-anchor="end" class="sans">Qwen3.5-9B</text>
+<path d="M1078,1012 H1312.888888888889 A4,4 0 0 1 1316.888888888889,1016 V1030 A4,4 0 0 1 1312.888888888889,1034 H1078 Z" fill="#B9C8DD"/>
+<text x="1326.888888888889" y="1029" font-size="19" fill="#231F20" font-weight="400" text-anchor="start" class="sans">66.4%</text>
+<text x="1064" y="1067" font-size="20" fill="#231F20" font-weight="400" text-anchor="end" class="sans">Qwen3.5-4B</text>
+<path d="M1078,1050 H1295.111111111111 A4,4 0 0 1 1299.111111111111,1054 V1068 A4,4 0 0 1 1295.111111111111,1072 H1078 Z" fill="#B9C8DD"/>
+<text x="1309.111111111111" y="1067" font-size="19" fill="#231F20" font-weight="400" text-anchor="start" class="sans">61.4%</text>
+<text x="1064" y="1105" font-size="20" fill="#231F20" font-weight="400" text-anchor="end" class="sans">Qwen3.5-0.8B</text>
+<path d="M1078,1088 H1237.3333333333333 A4,4 0 0 1 1241.3333333333333,1092 V1106 A4,4 0 0 1 1237.3333333333333,1110 H1078 Z" fill="#B9C8DD"/>
+<text x="1251.3333333333333" y="1105" font-size="19" fill="#231F20" font-weight="400" text-anchor="start" class="sans">45.4%</text>
+<text x="1064" y="1143" font-size="20" fill="#231F20" font-weight="400" text-anchor="end" class="sans">Gemma 3 270M IT</text>
+<path d="M1078,1126 H1177.3333333333333 A4,4 0 0 1 1181.3333333333333,1130 V1144 A4,4 0 0 1 1177.3333333333333,1148 H1078 Z" fill="#B9C8DD"/>
+<text x="1191.3333333333333" y="1143" font-size="19" fill="#231F20" font-weight="400" text-anchor="start" class="sans">28.7%</text>
 <rect x="850" y="1236" width="40" height="4" rx="2" fill="#F44029"/>
 <text x="850" y="1288" text-anchor="start" class="sans"><tspan font-size="40" fill="#231F20" font-weight="700">+24</tspan><tspan font-size="21" fill="#231F20" font-weight="600"> points</tspan></text>
 <text x="850" y="1318" font-size="19" fill="#5E5A57" font-weight="400" text-anchor="start" class="sans">over its base model,</text>
@@ -184,9 +181,5 @@
 <text x="1079" y="1288" text-anchor="start" class="sans"><tspan font-size="40" fill="#231F20" font-weight="700">+5</tspan><tspan font-size="21" fill="#231F20" font-weight="600"> points</tspan></text>
 <text x="1079" y="1318" font-size="19" fill="#5E5A57" font-weight="400" text-anchor="start" class="sans">over Qwen3.8-27B,</text>
 <text x="1079" y="1344" font-size="19" fill="#5E5A57" font-weight="400" text-anchor="start" class="sans">a model 3× larger</text>
-<rect x="1308" y="1236" width="40" height="4" rx="2" fill="#F44029"/>
-<text x="1308" y="1288" text-anchor="start" class="sans"><tspan font-size="40" fill="#231F20" font-weight="700">3</tspan><tspan font-size="21" fill="#231F20" font-weight="600"> points</tspan></text>
-<text x="1308" y="1318" font-size="19" fill="#5E5A57" font-weight="400" text-anchor="start" class="sans">behind Jev 1.13.0</text>
-<text x="1308" y="1344" font-size="19" fill="#5E5A57" font-weight="400" text-anchor="start" class="sans">from TypeSafe</text>
 <text x="48" y="1420" font-size="19" fill="#5E5A57" font-weight="400" text-anchor="start" class="sans">huggingface.co/bespokelabs/Bespoke-Nimble-9B  ·  github.com/bespokelabsai/nimble</text>
 </svg>

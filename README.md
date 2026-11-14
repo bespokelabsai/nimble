@@ -8,7 +8,7 @@
 
 [Model](https://huggingface.co/bespokelabs/Bespoke-Nimble-9B) · [Timeline](#timeline) · [Updates](#updates) · [Capabilities](#capabilities) · [Quickstart](#quickstart) · [Methodology](#methodology) · [Documentation and development](#documentation-and-development) · [Citation](#citation)
 
-![Introducing Bespoke Nimble. Serving reads the prompt once and then scores one answer token per question. Data curation changes one fact so that the correct answer flips. Training fine-tunes Qwen3.5-9B with LoRA on the answer tokens only. On 324 held-out examples, Bespoke-Nimble-9B matches 90.1% of the reference labels, compared with 66.4% for its base model and 93.2% for Jev 1.13.0.](assets/diagrams/nimble-infographic.svg)
+![Introducing Bespoke Nimble. Serving reads the prompt once and then scores one answer token per question. Data curation changes one fact so that the correct answer flips. Training fine-tunes Qwen3.5-9B with LoRA on the answer tokens only. On 324 held-out examples, Bespoke-Nimble-9B matches 90.1% of the reference labels, compared with 66.4% for its base model.](assets/diagrams/nimble-infographic.svg)
 
 Nimble takes some text and a schema, and makes typed decisions about the text.
 The schema is the list of questions to answer. Each question is either a choice
@@ -46,10 +46,10 @@ These are the main steps from the release of Jev to the launch of Nimble-v4.1.
 
 - On October 13, 2026, we launched Nimble-v4 (9B) and Nimble-v4-max (27B) on
   the API at [console.bespokelabs.ai](https://console.bespokelabs.ai). On the
-  public suite of the Decision Index, Nimble-v4-max is #1 with 68.46, and
-  Nimble-v4 is #1 of 104 models under 25B with 63.70. Jev 1.13 scores 57.96, and
-  Perplexity Decider v1.1 scores 62.25. We measured the scores for Nimble-v4 and
-  Nimble-v4-max in our own run on October 12, 2026. They are not yet on the
+  public suite of the Decision Index, Nimble-v4-max was #1 with 68.46, and
+  Nimble-v4 was #1 of 104 models under 25B with 63.70. Jev 1.13 scored 57.96, and
+  Perplexity Decider v1.1 scored 62.25. We measured the scores for Nimble-v4 and
+  Nimble-v4-max in our own run on October 12, 2026. They were not yet on the
   Decision Index dashboard.
 - On November 5, 2026, we released Nimble-v4.1 (27B). At release, it was tied
   for #2 on the Decision Index. It scores 70.0 overall and 72.74 on the public
@@ -59,6 +59,13 @@ These are the main steps from the release of Jev to the launch of Nimble-v4.1.
   `v4.1` tag of [Nimble-v4-max](https://huggingface.co/bespokelabs/Nimble-v4-max).
 
   <img src="assets/timeline/nimble-v4.1-decision-index.png" alt="The Decision Index chart at the release of Nimble-v4.1. Bespoke Nimble v4.1 Max (27B) scores 70.0 and is in the group tied for #2, with Turion Jev 31B at 70.5 and vLLM-SR d3-ultra at 70.2. The tied #1 group scores 71.1 to 71.9." width="360">
+
+- On the Decision Index 0.4.1 board of November 12, 2026, newer entries have
+  moved Nimble-v4.1 down from the group tied for #2. It is #15 of 301 models,
+  with a Full score of 70.03. On the same board, Perplexity Decider v1.2 scores
+  67.98 and Jev 1.14 scores 60.24. All three numbers are the board's own
+  ([Decision Index](https://huggingface.co/spaces/multimodalart/jev-decision-index),
+  [board data](https://huggingface.co/datasets/multimodalart/decision-index-leaderboard)).
 
 ## Updates
 
@@ -481,7 +488,7 @@ It preserves the three-epoch linear learning rate schedule used during selection
 
 ### Evaluation on 324 held-out examples
 
-![Reference-label agreement on the same 324 examples: Jev 93.21%, Bespoke-Nimble-9B 90.12%, Qwen3.8-27B 84.88%, Qwen3.5-9B 66.36%, Qwen3.5-4B 61.42%, Qwen3.5-0.8B 45.37%, and Gemma 3 270M IT 28.70%.](assets/evidence-324-comparison.svg)
+![Reference-label agreement on the same 324 examples: Bespoke-Nimble-9B 90.12%, Qwen3.8-27B 84.88%, Qwen3.5-9B 66.36%, Qwen3.5-4B 61.42%, Qwen3.5-0.8B 45.37%, and Gemma 3 270M IT 28.70%.](assets/evidence-324-comparison.svg)
 
 | Model | Reference matches | Agreement |
 | --- | ---: | ---: |
@@ -491,16 +498,13 @@ It preserves the three-epoch linear learning rate schedule used during selection
 | Qwen3.5-9B | 215/324 | 66.36% |
 | Qwen3.8-27B | 275/324 | 84.88% |
 | **Bespoke-Nimble-9B** | **292/324** | **90.12%** |
-| Jev 1.13.0 | 302/324 | 93.21% |
 
 On these 324 examples, Bespoke-Nimble-9B matched 17 more reference labels than
-the untuned 27B model, which is 5.25 percentage points more. Jev matched 10 more
-reference labels than Bespoke-Nimble-9B, which is 3.09 points more. The untuned
-models are models that we did not fine-tune for this task. We tested all seven
+the untuned 27B model, which is 5.25 percentage points more. The untuned
+models are models that we did not fine-tune for this task. We tested all six
 models on the same examples with the same reference labels. We ran Gemma and
 the untuned Qwen models on an H100 GPU. For Bespoke-Nimble-9B, we reused
-checked results from an earlier H100 run. For Jev, we reused results from an
-earlier run through its API.
+checked results from an earlier H100 run.
 
 The reference labels are synthetic. The 324 examples form 162 pairs of closely
 related examples. All of them come from only six source families, so this is a narrow
@@ -592,7 +596,7 @@ temperature again on the merged weights.
 
 In the table below, each time is in milliseconds per example. We calculated
 these times from the timing that we saved for each request. Each example has
-one question. The local models and Jev return a typed answer and the
+one question. The local models return a typed answer and the
 probability of each candidate answer. The OpenRouter models generate text in
 the usual way, with the reasoning setting at medium. For local scoring, we run
 the model once per example. We do not sample more than once, and the model does
@@ -607,7 +611,6 @@ not write an explanation.
 | Qwen3.8-27B | 324 | 145.3 | 145.2 | 185.5 | H100 · contrastive holdout |
 | Bespoke-Nimble-9B | 120 | 106.0 | 110.1 | 119.8 | H100 · contrastive holdout|
 | Bespoke-Nimble-9B | 324 | 444.0 | 546.0 | 981.0 | M5 Pro 64GB · contrastive holdout|
-| Jev 1.13.0 | 324 | 246.7 | 267.0 | 347.4 | TypeSafe API · contrastive holdout |
 | DeepSeek-V4.1-Flash | 100 | 2896.4 | 5238.0 | 15065.4 | OpenRouter / Fireworks · general eval |
 | Qwen3.8 2.4T A95B | 100 | 2792.3 | 3108.0 | 5110.5 | OpenRouter / Modal · general eval |
 

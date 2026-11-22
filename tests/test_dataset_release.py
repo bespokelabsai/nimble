@@ -46,5 +46,43 @@ class CanonicalDatasetTests(unittest.TestCase):
             validate_evidence_data(rows, manifest)
 
 
+class TextEncodingTests(unittest.TestCase):
+    """The release stores UTF-8 text, so every reader must decode it as UTF-8.
+
+    The manifest embeds non-ASCII case text, so a reader that omits the encoding
+    depends on the host locale: it succeeds where that locale is UTF-8 and raises
+    UnicodeDecodeError where it is not, as on Windows/cp1252 or LANG=C. The
+    documented verification command must work on either.
+    """
+
+    @staticmethod
+    def _locale_default_reads(directory):
+        """Read the release with Path.read_text patched to reject implicit encodings."""
+        original = Path.read_text
+        offending = []
+
+        def strict(self, *args, **kwargs):
+            if not args and kwargs.get("encoding") is None:
+                offending.append(self.name)
+            return original(self, *args, **kwargs)
+
+        from unittest import mock
+        with mock.patch.object(Path, "read_text", strict):
+            result = verify(directory)
+        return result, offending
+
+    def test_verification_decodes_every_file_as_utf8(self):
+        result, offending = self._locale_default_reads(PROJECT_ROOT / 'data')
+        self.assertEqual(offending, [])
+        self.assertEqual((result['training_rows'], result['holdout_rows']), (2676, 324))
+
+    def test_manifest_text_is_not_ascii(self):
+        raw = (PROJECT_ROOT / 'data' / 'manifest.json').read_bytes()
+        self.assertTrue(any(byte > 0x7F for byte in raw),
+                        'fixture assumption: the manifest carries non-ASCII text')
+        with self.assertRaises(UnicodeDecodeError):
+            raw.decode('ascii')
+
+
 if __name__ == '__main__':
     unittest.main()

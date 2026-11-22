@@ -88,7 +88,7 @@ def resolve_checkpoint(model, revision):
 def prepare_data(directory, validation_path, tokenizer, max_length, model_id=MODEL_ID, revision=REVISION):
     directory = Path(directory)
     raw = read_rows(directory / "train.jsonl")
-    manifest = json.loads((directory / "manifest.json").read_text())
+    manifest = json.loads((directory / "manifest.json").read_text(encoding="utf-8"))
     compact = manifest.get('storage_format') == 'nimble-self-contained-v1'
     if compact:
         for path, key in [(directory / 'train.jsonl', 'train.jsonl'), (Path(validation_path), 'eval.jsonl')]:
@@ -107,7 +107,7 @@ def prepare_data(directory, validation_path, tokenizer, max_length, model_id=MOD
     else:
         scoring = read_rows(directory / "train_scoring.jsonl")
         tokens = read_rows(directory / "train_tokens.jsonl")
-        token_manifest = json.loads((directory / "train_tokens.manifest.json").read_text())
+        token_manifest = json.loads((directory / "train_tokens.manifest.json").read_text(encoding="utf-8"))
     if token_manifest["model"] != model_id or token_manifest["revision"] != revision:
         raise ValueError("Token export model/revision differs")
     checks = [(fingerprint(raw), manifest["train_sha256"]),

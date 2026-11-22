@@ -11,7 +11,7 @@ from nimble.training.schema_data import fingerprint, read_rows, validate_separat
 
 def verify(directory):
     directory = Path(directory)
-    manifest = json.loads((directory / 'manifest.json').read_text())
+    manifest = json.loads((directory / 'manifest.json').read_text(encoding='utf-8'))
     if manifest.get('storage_format') != 'nimble-self-contained-v1':
         raise ValueError('Expected the canonical self-contained release')
     rows = {}

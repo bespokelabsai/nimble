@@ -53,6 +53,44 @@ class SchemaDataTests(unittest.TestCase):
         self.assertNotIn("HIDDEN_REASON", str(result))
         self.assertEqual(result["context"], "A fact")
 
+    def test_manifest_and_token_manifest_decode_as_utf8(self):
+        """prepare_data is what `schema_train train` calls before any scoring.
+
+        It reads the same manifest as the documented `verify_dataset` command, so
+        neither may depend on the host locale to decode the stored UTF-8 text.
+        """
+        import unittest.mock
+        from pathlib import Path
+        from nimble.paths import PROJECT_ROOT
+
+        class StubTokenizer:
+            pad_token_id = 0
+            eos_token_id = 0
+            all_special_ids = []
+            all_special_tokens = []
+
+            def apply_chat_template(self, messages, tokenize=False, add_generation_prompt=True,
+                                    enable_thinking=False):
+                return messages[-1]["content"]
+
+            def encode(self, text, add_special_tokens=False):
+                return [1 + (ord(character) % 90) for character in text]
+
+        original = Path.read_text
+        offending = []
+
+        def strict(self, *args, **kwargs):
+            if not args and kwargs.get("encoding") is None:
+                offending.append(self.name)
+            return original(self, *args, **kwargs)
+
+        with unittest.mock.patch.object(Path, "read_text", strict):
+            training, validation, audit = prepare_data(
+                PROJECT_ROOT / "data", PROJECT_ROOT / "data" / "eval.jsonl", StubTokenizer(), 65536)
+        self.assertEqual([name for name in offending if name.endswith("manifest.json")], [])
+        self.assertEqual((len(training), len(validation)), (2676, 324))
+        self.assertEqual((audit["training_rows"], audit["validation_rows"]), (2676, 324))
+
     def test_reject_source_family_leakage_and_wrong_splits(self):
         training = [{"id": "t", "split": "train", "source_family": "family", "provenance": {"source_id": "s"}, "input": {"state": "one"}}]
         validation = [{"id": "v", "split": "validation", "family": "other", "input": {"state": "two"}}]
